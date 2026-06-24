@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>游哒 — 游戏运营内容雷达</title>
+  <!-- Font Awesome 6 免费 CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* ================================================================
+       Phase 1 — CSS 变量体系 & 双模式
+       品牌主色: #7C5CFF
+       ================================================================ */
+    :root, body.mode-player {
+      --brand: #7C5CFF;
+      --brand-light: #A28FFF;
+      --brand-dark: #5E3FD9;
+      --brand-fade: #F4F1FF;
+      --bg-body: #F8F9FC;
+      --bg-card: #FFFFFF;
+      --bg-header: #FFFFFF;
+      --text-primary: #1A1533;
+      --text-secondary: #5C5575;
+      --text-muted: #9E98B5;
+      --border: #E8E4F0;
+      --border-focus: #7C5CFF;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-xl: 28px;
+      --radius-full: 9999px;
+      --shadow-sm: 0 2px 8px rgba(124,92,255,0.06);
+      --shadow-md: 0 6px 20px rgba(124,92,255,0.10);
+      --shadow-lg: 0 12px 36px rgba(124,92,255,0.12);
+      --space-xs: 6px;
+      --space-sm: 12px;
+      --space-md: 20px;
+      --space-lg: 32px;
+      --space-xl: 48px;
+      --text-xs: 12px;
+      --text-sm: 14px;
+      --text-base: 16px;
+      --text-md: 18px;
+      --text-lg: 22px;
+      --text-xl: 28px;
+      --card-padding: 24px;
+      --list-gap: 16px;
+      --grid-gap: 24px;
+      --card-bg: #FFFFFF;
+      --card-border: none;
+      --card-shadow: 0 6px 20px rgba(124,92,255,0.10);
+      --nav-glass-bg: rgba(255,255,255,0.78);
+      --nav-glass-border: rgba(124,92,255,0.10);
+      --transition-speed: 0.4s;
+    }
+
+    body.mode-expert {
+      --brand: #7C5CFF;
+      --brand-light: #A28FFF;
+      --brand-dark: #5E3FD9;
+      --brand-fade: #F4F1FF;
+      --bg-body: #FAFAFA;
+      --bg-card: #FFFFFF;
+      --bg-header: #FFFFFF;
+      --text-primary: #1A1533;
+      --text-secondary: #4A4560;
+      --text-muted: #7B7690;
+      --border: #E5E5E5;
+      --border-focus: #7C5CFF;
+      --radius-sm: 3px;
+      --radius-md: 5px;
+      --radius-lg: 8px;
+      --radius-xl: 10px;
+      --radius-full: 9999px;
+      --shadow-sm: none;
+      --shadow-md: none;
+      --shadow-lg: none;
+      --space-xs: 3px;
+      --space-sm: 8px;
+      --space-md: 14px;
+      --space-lg: 22px;
+      --space-xl: 32px;
+      --space-2xl: 44px;
+      --text-xs: 11px;
+      --text-sm: 12.5px;
+      --text-base: 14px;
+      --text-md: 15px;
+      --text-lg: 17px;
+      --text-xl: 21px;
+      --card-padding: 14px;
+      --list-gap: 8px;
+      --grid-gap: 14px;
+      --card-bg: #FFFFFF;
+      --card-border: 1px solid #E5E5E5;
+      --card-shadow: none;
+      --nav-glass-bg: rgba(250,250,250,0.88);
+      --nav-glass-border: rgba(0,0,0,0.06);
+    }
+
+    /* ================================================================
+       Phase 1b — 双模式显隐控制
+       ================================================================ */
+    .player-only { display: block; }
+    .expert-only { display: none; }
+    body.mode-expert .player-only { display: none; }
+    body.mode-expert .expert-only { display: block; }
+
+    /* ================================================================
+       基础重置
+       ================================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg-body);
+      color: var(--text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+      transition: background var(--transition-speed) ease, color var(--transition-speed) ease;
+    }
+
+    /* ================================================================
+       顶部 Header
+       ================================================================ */
+    .page-header {
+      background: var(--bg-header);
+      border-bottom: 1px solid var(--border);
+      padding: var(--space-md) var(--space-lg);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      transition: padding var(--transition-speed) ease, background var(--transition-speed) ease, border-color var(--transition-speed) ease;
+      box-shadow: var(--shadow-sm);
+    }
+    .header-left { display: flex; align-items: center; gap: var(--space-sm); }
+    .header-logo { width: 32px; height: 32px; border-radius: var(--radius-md); background: var(--brand); display:flex; align-items: center; justify-content: center; color: #fff; font-size: 16px; font-weight: 800; flex-shrink:0; transition: border-radius var(--transition-speed) ease; }
+    .header-title { font-size: var(--text-md); font-weight: 700; color: var(--text-primary); }
+    .header-badge { font-size: var(--text-xs); color: var(--brand); background: var(--brand-fade); padding: 2px 10px; border-radius: var(--radius-full); font-weight: 600; transition: font-size var(--transition-speed) ease, border-radius var(--transition-speed) ease; }
+
+    /* 模式切换 */
+    .mode-toggle {
+      display: flex; align-items: center; gap: 8px; padding: 6px 6px 6px 14px;
+      border: 1px solid var(--border); border-radius: var(--radius-full);
+      background: rgba(124,92,255,0.05); cursor: pointer; font-family: inherit;
+      font-size: var(--text-sm); font-weight: 600; color: var(--text-secondary);
+      transition: all var(--transition-speed) ease; user-select: none;
+    }
+    .mode-toggle:hover { border-color: var(--brand); color: var(--brand); }
+    .mode-toggle:active { transform: scale(0.97); transition: transform 0.1s ease; }
+    .mode-toggle-knob {
+      width: 34px; height: 22px; border-radius: 11px; background: var(--brand);
+      display: flex; align-items: center; padding: 2px; transition: background var(--transition-speed) ease;
+    }
+    .mode-toggle-knob::after { content:''; width:18px; height:18px; border-radius:50%; background:#fff; transition: transform var(--transition-speed) ease; }
+    body.mode-expert .mode-toggle-knob::after { transform: translateX(12px); }
+
+    /* ================================================================
+       主内容区 & 页面切换
+       ================================================================ */
+    .page-main { max-width: 1000px; margin: 0 auto; padding: var(--space-lg); padding-bottom: calc(var(--space-2xl) + 100px); transition: padding var(--transition-speed) ease; }
+    .page-panel { display: none; }
+    .page-panel.active { display: block; }
+
+    /* ================================================================
+       Phase 4 — 底部导航栏（毛玻璃 + 滑动滑块）
+       ================================================================ */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+      display: flex; justify-content: space-around; align-items: center;
+      padding: 6px 8px 8px 8px;
+      padding-bottom: max(8px, env(safe-area-inset-bottom));
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      background: var(--nav-glass-bg);
+      border-top: 1px solid var(--nav-glass-border);
+      box-shadow: 0 -2px 12px rgba(124,92,255,0.04);
+      transition: background var(--transition-speed) ease, border-color var(--transition-speed) ease;
+    }
+    .nav-slider {
+      position: absolute; top: 4px; height: calc(100% - 12px);
+      background: var(--brand); border-radius: var(--radius-md);
+      opacity: 0.12;
+      transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-radius var(--transition-speed) ease;
+      pointer-events: none; z-index: 0;
+    }
+    .nav-tab {
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      padding: 4px 12px; border: none; background: none; cursor: pointer;
+      font-family: inherit; color: var(--text-muted); font-size: 10px; font-weight: 500;
+      transition: color 0.25s ease, transform 0.15s ease;
+      -webkit-tap-highlight-color: transparent; user-select: none;
+      min-width: 56px; position: relative; z-index: 1;
+    }
+    .nav-tab:active { transform: scale(0.94); }
+    .nav-tab .nav-icon { font-size: 18px; line-height: 1; transition: transform 0.25s ease; }
+    .nav-tab.active { color: var(--brand); font-weight: 700; }
+    .nav-tab.active .nav-icon { transform: translateY(-1px); }
+
+    /* ================================================================
+       通用组件
+       ================================================================ */
+    .section-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--space-md); transition: margin-bottom var(--transition-speed) ease; }
+    .section-title { font-size: var(--text-lg); font-weight: 700; color: var(--text-primary); transition: font-size var(--transition-speed) ease; }
+    .empty-state { text-align: center; padding: var(--space-xl) var(--space-md); color: var(--text-muted); font-size: var(--text-sm); }
+
+    /* 热度标签 */
+    .hotness-S { background: #DC2626; color: #fff; }
+    .hotness-A { background: #F97316; color: #fff; }
+    .hotness-B { background: #3B82F6; color: #fff; }
+    .hotness-C { background: #6B7280; color: #fff; }
+    .hotness-badge {
+      display: inline-block; font-size: 10px; font-weight: 800; padding: 2px 7px;
+      border-radius: var(--radius-sm); letter-spacing: 0.04em; white-space: nowrap; line-height: 1.4;
+      transition: border-radius var(--transition-speed) ease;
+    }
+
+    /* AI 按钮 */
+    .ai-btn {
+      display: inline-flex; align-items: center; gap: 4px; padding: 5px 14px;
+      border-radius: var(--radius-full); border: 1.5px solid var(--brand);
+      background: var(--brand-fade); color: var(--brand); font-size: var(--text-xs);
+      font-weight: 700; font-family: inherit; cursor: pointer;
+      transition: all 0.2s ease, border-radius var(--transition-speed) ease;
+      white-space: nowrap; user-select: none; margin-top: var(--space-sm);
+      min-height: 32px;
+    }
+    .ai-btn:hover { background: var(--brand); color: #fff; }
+    .ai-btn:active { transform: scale(0.96); }
+
+    /* 收藏按钮 */
+    .bookmark-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 36px; height: 36px; min-height: 36px;
+      border-radius: var(--radius-md); border: 1.5px solid var(--border);
+      background: var(--bg-card); cursor: pointer; font-size: 16px;
+      transition: all 0.2s ease; flex-shrink: 0; user-select: none; line-height: 1;
+    }
+    .bookmark-btn:hover { border-color: #F59E0B; background: #FFFBEB; }
+    .bookmark-btn.bookmarked { border-color: #F59E0B; background: #FEF3C7; }
+
+    /* Logo 容器去留白系统 */
+    .logo-wrap {
+      width: 48px; height: 48px; border-radius: inherit;
+      overflow: hidden; background: #f5f5f7;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: border-radius var(--transition-speed) ease, background var(--transition-speed) ease;
+    }
+    body.mode-expert .logo-wrap { background: #f2f2f5; }
+
+    .logo-wrap.pub-size { width: 64px; height: 64px; }
+
+    .logo-wrap .game-logo, .logo-wrap .pub-logo {
+      width: 100%; height: 100%; object-fit: contain; display: block; margin: 0 auto;
+    }
+    .logo-wrap .logo-fallback {
+      width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+      color: #fff; font-weight: 800; font-size: 18px; border-radius: inherit;
+    }
+
+    /* 文章封面去留白 */
+    .article-cover {
+      width: 100px; height: 100px; border-radius: var(--radius-md); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; overflow: hidden;
+      background: #f5f5f7;
+      transition: border-radius var(--transition-speed) ease, background var(--transition-speed) ease;
+    }
+    body.mode-expert .article-cover { background: #f2f2f5; }
+
+    .article-cover .game-logo, .article-cover .pub-logo {
+      width: 100%; height: 100%; object-fit: contain; display: block; margin: 0 auto;
+    }
+
+    /* 旧版全局规则降级 */
+    .game-logo, .pub-logo { width: 100%; height: 100%; object-fit: contain; border-radius: inherit; }
+    .logo-fallback {
+      width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+      color: #fff; font-weight: 800; font-size: 18px; border-radius: inherit;
+    }
+
+    /* ================================================================
+       Phase 2 — 玩家模式 首页
+       ================================================================ */
+    .banner-card {
+      position: relative; border-radius: var(--radius-lg); overflow: hidden;
+      background: linear-gradient(135deg, #7C5CFF, #A78BFA 40%, #C4B5FD 75%, #E9D5FF);
+      padding: var(--space-lg); min-height: 170px;
+      box-shadow: 0 8px 32px rgba(124,92,255,0.18);
+      transition: border-radius var(--transition-speed) ease, padding var(--transition-speed) ease;
+      margin-bottom: var(--space-lg);
+    }
+    .banner-card::before { content:''; position:absolute; top:-40px; right:-20px; width:160px; height:160px; border-radius:50%; background:rgba(255,255,255,0.12); pointer-events:none; }
+    .banner-card::after { content:''; position:absolute; bottom:-50px; right:60px; width:100px; height:100px; border-radius:50%; background:rgba(255,255,255,0.08); pointer-events:none; }
+    .banner-badge { display:inline-block; font-size:var(--text-xs); font-weight:700; color:#fff; background:rgba(255,255,255,0.22); backdrop-filter:blur(4px); padding:4px 14px; border-radius:var(--radius-full); margin-bottom:var(--space-sm); position:relative; z-index:1; letter-spacing:0.06em; }
+    .banner-title { font-size:var(--text-xl); font-weight:800; color:#fff; line-height:1.35; max-width:70%; position:relative; z-index:1; text-shadow:0 2px 8px rgba(0,0,0,0.08); }
+    .banner-sub { font-size:var(--text-sm); color:rgba(255,255,255,0.82); margin-top:var(--space-sm); position:relative; z-index:1; }
+
+    /* 分类按钮 */
+    .cat-filters { display:flex; gap:var(--space-sm); margin-bottom:var(--space-lg); overflow-x:auto; scrollbar-width:none; padding-bottom:4px; transition:gap var(--transition-speed) ease, margin-bottom var(--transition-speed) ease; }
+    .cat-filters::-webkit-scrollbar { display:none; }
+    .cat-pill {
+      flex-shrink:0; padding:8px 20px; min-height:44px; border-radius:var(--radius-full);
+      border:1.5px solid var(--border); background:var(--card-bg); color:var(--text-secondary);
+      font-size:var(--text-sm); font-weight:600; font-family:inherit; cursor:pointer;
+      transition:all 0.25s ease; white-space:nowrap; user-select:none;
+      display:flex; align-items:center; gap:6px;
+    }
+    .cat-pill:hover { border-color:var(--brand-light); color:var(--brand); }
+    .cat-pill.active { background:var(--brand); border-color:var(--brand); color:#fff; box-shadow:0 4px 12px rgba(124,92,255,0.30); }
+
+    /* 热点卡片 */
+    .hot-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:var(--grid-gap); margin-bottom:var(--space-lg); transition:gap var(--transition-speed) ease; }
+    .hot-card {
+      background:var(--card-bg); border-radius:var(--radius-lg); overflow:hidden;
+      box-shadow:var(--card-shadow); border:var(--card-border); cursor:pointer;
+      transition:all var(--transition-speed) ease, transform 0.2s ease;
+    }
+    .hot-card:hover { transform:translateY(-3px); box-shadow:0 12px 32px rgba(124,92,255,0.12); }
+    .hot-cover { width:100%; aspect-ratio:16/10; display:flex; align-items:flex-end; padding:var(--space-sm); position:relative; }
+    .hot-cover-label { font-size:var(--text-xs); font-weight:700; color:#fff; background:rgba(0,0,0,0.45); backdrop-filter:blur(4px); padding:3px 10px; border-radius:var(--radius-sm); }
+    .hot-body { padding:var(--space-sm) var(--space-sm) var(--space-md); transition:padding var(--transition-speed) ease; }
+    .hot-meta { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+    .hot-game { font-size:var(--text-xs); font-weight:600; color:var(--text-muted); }
+    .hot-title { font-size:var(--text-sm); font-weight:700; color:var(--text-primary); line-height:1.45; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+
+    /* 文章卡片 */
+    .article-stream { display:flex; flex-direction:column; gap:var(--list-gap); margin-bottom:var(--space-lg); }
+    .article-card {
+      display:flex; gap:var(--space-md); background:var(--card-bg);
+      border-radius:var(--radius-lg); padding:var(--card-padding);
+      box-shadow:var(--card-shadow); border:var(--card-border); cursor:pointer;
+      transition:all var(--transition-speed) ease, transform 0.2s ease;
+    }
+    .article-card:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(124,92,255,0.10); }
+    .article-body { flex:1; min-width:0; display:flex; flex-direction:column; gap:6px; }
+    .article-title { font-size:var(--text-base); font-weight:700; color:var(--text-primary); line-height:1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .article-summary { font-size:var(--text-sm); color:var(--text-secondary); line-height:1.5; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .article-meta { display:flex; align-items:center; gap:var(--space-sm); margin-top:auto; font-size:var(--text-xs); color:var(--text-muted); }
+
+    /* 厂商专区 */
+    .pub-scroll { display:flex; gap:var(--space-md); overflow-x:auto; scrollbar-width:none; padding-bottom:4px; transition:gap var(--transition-speed) ease; }
+    .pub-scroll::-webkit-scrollbar { display:none; }
+    .pub-card {
+      flex-shrink:0; width:160px; padding:var(--space-md); border-radius:var(--radius-lg);
+      display:flex; flex-direction:column; align-items:center; gap:var(--space-sm);
+      cursor:pointer; box-shadow:var(--card-shadow); border:var(--card-border);
+      background:var(--card-bg); transition:all var(--transition-speed) ease, transform 0.2s ease;
+    }
+    .pub-card:hover { transform:translateY(-3px); }
+    .pub-avatar { width:64px; height:64px; border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center; overflow:hidden; background:#f5f5f7; transition:border-radius var(--transition-speed) ease, background var(--transition-speed) ease; }
+    .pub-name { font-size:var(--text-sm); font-weight:700; color:var(--text-primary); }
+    .pub-count { font-size:var(--text-xs); color:var(--text-muted); }
+
+    /* ================================================================
+       Phase 3 — 专家模式 首页
+       ================================================================ */
+    .expert-section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:var(--space-md); padding-bottom:var(--space-sm); border-bottom:2px solid var(--border); }
+    .expert-section-title { font-size:var(--text-base); font-weight:700; color:var(--text-primary); letter-spacing:0.02em; }
+    .expert-section-count { font-size:var(--text-xs); color:var(--text-muted); }
+
+    /* 筛选栏 */
+    .expert-filter-bar { display:flex; flex-direction:column; gap:var(--space-sm); margin-bottom:var(--space-lg); padding:var(--space-md); background:var(--bg-card); border:var(--card-border); border-radius:var(--radius-lg); }
+    .expert-filter-row { display:flex; align-items:center; gap:var(--space-sm); flex-wrap:wrap; }
+    .expert-filter-label { font-size:var(--text-xs); font-weight:700; color:var(--text-secondary); min-width:48px; text-transform:uppercase; letter-spacing:0.04em; }
+    .expert-filter-chips { display:flex; gap:6px; flex-wrap:wrap; }
+    .expert-chip {
+      padding:3px 12px; min-height:30px; border-radius:var(--radius-sm); border:1px solid var(--border);
+      background:var(--bg-card); color:var(--text-secondary); font-size:var(--text-xs);
+      font-weight:500; font-family:inherit; cursor:pointer; transition:all 0.2s ease; white-space:nowrap; user-select:none;
+    }
+    .expert-chip:hover { border-color:var(--brand); color:var(--brand); }
+    .expert-chip.active { background:var(--brand); border-color:var(--brand); color:#fff; font-weight:700; }
+
+    /* 重要事件 */
+    .breaking-list { display:flex; flex-direction:column; gap:1px; border:var(--card-border); border-radius:var(--radius-lg); overflow:hidden; background:var(--border); margin-bottom:var(--space-lg); }
+    .breaking-item { display:flex; align-items:flex-start; gap:var(--space-md); padding:var(--space-md); background:var(--bg-card); cursor:pointer; transition:background var(--transition-speed) ease; }
+    .breaking-item:hover { background:#FAFAFC; }
+    .breaking-time { font-size:var(--text-xs); color:var(--text-muted); white-space:nowrap; font-family:"SF Mono","Menlo","Consolas",monospace; min-width:48px; }
+    .breaking-dot { width:6px; height:6px; border-radius:50%; margin-top:6px; flex-shrink:0; }
+    .breaking-body { flex:1; min-width:0; }
+    .breaking-game { font-size:var(--text-xs); font-weight:600; color:var(--brand); margin-bottom:2px; }
+    .breaking-title { font-size:var(--text-sm); font-weight:700; color:var(--text-primary); line-height:1.45; }
+
+    /* 时间线 */
+    .timeline { margin-bottom:var(--space-lg); }
+    .timeline-item {
+      display:flex; gap:var(--space-md); padding:var(--space-md) 0;
+      border-bottom:1px solid var(--border); cursor:pointer;
+      opacity:0; transform:translateY(12px);
+      transition:opacity 0.45s ease, transform 0.45s ease, padding var(--transition-speed) ease;
+    }
+    .timeline-item:last-child { border-bottom:none; }
+    .timeline-item.timeline-visible { opacity:1; transform:translateY(0); }
+    .timeline-item.timeline-highlight { background:var(--brand-fade); border-radius:var(--radius-md); padding:var(--space-sm); }
+    .tl-time-col { display:flex; flex-direction:column; align-items:center; min-width:56px; flex-shrink:0; }
+    .tl-time { font-size:var(--text-xs); color:var(--text-muted); font-family:"SF Mono","Menlo","Consolas",monospace; }
+    .tl-dot { width:8px; height:8px; border-radius:50%; margin-top:4px; flex-shrink:0; }
+    .tl-line { width:1px; flex:1; background:var(--border); margin-top:4px; }
+    .tl-body { flex:1; min-width:0; padding-bottom:var(--space-xs); }
+    .tl-game-row { display:flex; align-items:center; gap:var(--space-sm); margin-bottom:3px; }
+    .tl-game { font-size:var(--text-xs); font-weight:700; color:var(--brand); }
+    .tl-content { font-size:var(--text-sm); color:var(--text-primary); line-height:1.5; }
+    .tl-tags { display:flex; gap:6px; margin-top:5px; flex-wrap:wrap; }
+    .tl-tag { font-size:10px; padding:1px 7px; border-radius:var(--radius-sm); background:#F5F5F5; color:var(--text-secondary); border:1px solid var(--border); }
+
+    /* 竞品表 */
+    .comp-table { width:100%; border-collapse:collapse; font-size:var(--text-sm); border:var(--card-border); border-radius:var(--radius-lg); overflow:hidden; margin-bottom:var(--space-lg); }
+    .comp-table th,.comp-table td { padding:var(--space-sm) var(--space-md); text-align:left; border-bottom:1px solid var(--border); }
+    .comp-table th { font-size:var(--text-xs); font-weight:700; color:var(--text-muted); text-transform:uppercase; background:#FAFAFB; }
+    .comp-table td { background:var(--bg-card); }
+    .comp-pub { font-weight:700; color:var(--brand); }
+
+    /* ================================================================
+       AI 分析页
+       ================================================================ */
+    .ai-card { background:var(--bg-card); border:var(--card-border); border-radius:var(--radius-lg); padding:var(--space-lg); box-shadow:var(--card-shadow); }
+    .ai-label { font-size:var(--text-sm); font-weight:600; color:var(--text-secondary); margin-bottom:var(--space-sm); }
+    .ai-prefill { font-size:var(--text-xs); color:var(--brand); background:var(--brand-fade); padding:var(--space-sm) var(--space-md); border-radius:var(--radius-md); margin-bottom:var(--space-md); display:none; line-height:1.6; }
+    .ai-textarea { width:100%; min-height:140px; padding:var(--space-md); border-radius:var(--radius-md); border:1px solid var(--border); background:var(--bg-card); color:var(--text-primary); font-family:inherit; font-size:var(--text-sm); resize:vertical; }
+    .ai-textarea:focus { outline:none; border-color:var(--brand); }
+    .ai-samples { display:flex; gap:var(--space-sm); margin-top:var(--space-md); flex-wrap:wrap; }
+    .ai-sample-btn { padding:8px 16px; min-height:44px; border-radius:var(--radius-full); border:1.5px solid var(--border); background:var(--bg-card); color:var(--text-secondary); font-size:var(--text-xs); font-weight:600; cursor:pointer; font-family:inherit; transition:all 0.2s ease; }
+    .ai-sample-btn:hover { border-color:var(--brand); color:var(--brand); }
+    .ai-generate-btn { display:inline-flex; align-items:center; gap:6px; margin-top:var(--space-md); padding:10px 24px; min-height:44px; border-radius:var(--radius-full); border:none; background:var(--brand); color:#fff; font-size:var(--text-sm); font-weight:700; font-family:inherit; cursor:pointer; transition:all 0.25s ease; }
+    .ai-generate-btn:hover { background:var(--brand-dark); box-shadow:0 6px 18px rgba(124,92,255,0.30); }
+    .ai-result { margin-top:var(--space-lg); padding:var(--space-md); border-radius:var(--radius-md); background:#FAFAFC; border:1px solid var(--border); font-size:var(--text-sm); line-height:1.8; display:none; }
+    .ai-result h4 { color:var(--brand); margin-bottom:var(--space-sm); }
+    .ai-result strong { color:var(--brand); }
+    .ai-checkboxes { display:flex; gap:var(--space-md); flex-wrap:wrap; margin-top:var(--space-sm); }
+    .ai-checkboxes label { font-size:var(--text-xs); color:var(--text-secondary); display:flex; align-items:center; gap:4px; cursor:pointer; }
+    .ai-disclaimer { margin-top:var(--space-md); font-size:var(--text-xs); color:var(--text-muted); font-style:italic; }
+
+    /* ================================================================
+       智库页
+       ================================================================ */
+    .wiki-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:var(--grid-gap); }
+    .wiki-card { background:var(--bg-card); border:var(--card-border); border-radius:var(--radius-lg); padding:var(--card-padding); box-shadow:var(--card-shadow); cursor:pointer; transition:all var(--transition-speed) ease, transform 0.2s ease; }
+    .wiki-card:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(124,92,255,0.10); }
+    .wiki-card .wiki-game { font-size:var(--text-xs); font-weight:700; color:var(--brand); margin-bottom:var(--space-xs); }
+    .wiki-card .wiki-title { font-size:var(--text-base); font-weight:700; color:var(--text-primary); margin-bottom:var(--space-sm); }
+    .wiki-card .wiki-summary { font-size:var(--text-sm); color:var(--text-secondary); line-height:1.5; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .wiki-card .wiki-meta { display:flex; align-items:center; gap:var(--space-sm); margin-top:var(--space-sm); font-size:var(--text-xs); color:var(--text-muted); }
+
+    .wiki-list { display:flex; flex-direction:column; gap:var(--list-gap); }
+    .wiki-list-item { display:flex; gap:var(--space-md); padding:var(--space-md); background:var(--bg-card); border:var(--card-border); border-radius:var(--radius-lg); cursor:pointer; transition:background var(--transition-speed) ease; }
+    .wiki-list-item:hover { background:#FAFAFC; }
+    .wiki-list-body { flex:1; }
+    .wiki-list-title { font-size:var(--text-sm); font-weight:700; color:var(--text-primary); }
+
+    /* ================================================================
+       我的页
+       ================================================================ */
+    .fav-list { display:flex; flex-direction:column; gap:var(--space-sm); margin-bottom:var(--space-lg); }
+    .fav-item { display:flex; align-items:flex-start; gap:var(--space-md); background:var(--bg-card); border:var(--card-border); border-radius:var(--radius-lg); padding:var(--space-md); }
+    .fav-info { flex:1; min-width:0; }
+    .fav-title { font-size:var(--text-sm); font-weight:700; color:var(--text-primary); line-height:1.4; margin-bottom:4px; }
+    .fav-meta { font-size:var(--text-xs); color:var(--text-muted); }
+    .fav-remove { padding:4px 10px; min-height:32px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--bg-card); color:var(--text-muted); font-size:var(--text-xs); cursor:pointer; font-family:inherit; }
+    .fav-remove:hover { border-color:#EF4444; color:#EF4444; background:#FEF2F2; }
+
+    /* 关于区块 */
+    .about-block { background:var(--bg-card); border:var(--card-border); border-radius:var(--radius-lg); padding:var(--space-md); box-shadow:var(--card-shadow); }
+    .about-block h4 { font-size:var(--text-base); font-weight:700; color:var(--text-primary); margin-bottom:var(--space-sm); }
+    .about-block p { font-size:var(--text-sm); color:var(--text-secondary); line-height:1.6; }
+
+    /* 关于游哒 弹窗 */
+    .about-modal-overlay {
+      display: none; position: fixed; top:0; left:0; right:0; bottom:0;
+      background: rgba(0,0,0,0.48); z-index: 300;
+      align-items: center; justify-content: center;
+      padding: var(--space-md);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+    }
+    .about-modal-overlay.show { display: flex; }
+
+    .about-modal {
+      background: var(--bg-card); border-radius: var(--radius-xl);
+      max-width: 520px; width: 100%; max-height: 80vh;
+      overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+      padding: var(--space-lg);
+      transition: border-radius var(--transition-speed) ease;
+    }
+
+    .about-modal h3 { font-size: var(--text-lg); font-weight:800; color: var(--text-primary); margin-bottom: var(--space-sm); }
+    .about-modal h3 i { color: var(--brand); }
+    .about-modal .about-section { margin-bottom: var(--space-md); }
+    .about-modal .about-section h4 { font-size: var(--text-base); font-weight:700; color: var(--brand); margin-bottom: var(--space-xs); }
+    .about-modal .about-section p { font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.7; }
+    .about-modal .about-close {
+      display: inline-flex; align-items: center; gap: 4px; margin-top: var(--space-md);
+      padding: 8px 20px; border-radius: var(--radius-full); border: 1.5px solid var(--border);
+      background: var(--bg-card); color: var(--text-secondary); font-size: var(--text-sm);
+      font-weight: 600; cursor: pointer; font-family: inherit;
+      transition: all 0.2s ease;
+    }
+    .about-modal .about-close:hover { border-color: var(--brand); color: var(--brand); }
+
+    /* ================================================================
+       状态栏 & 页脚
+       ================================================================ */
+    .status-bar { display:flex; align-items:center; gap:var(--space-md); padding:var(--space-md) var(--space-lg); margin-top:var(--space-lg); background:var(--bg-card); border:var(--card-border); border-radius:var(--radius-lg); box-shadow:var(--card-shadow); font-size:var(--text-xs); color:var(--text-secondary); }
+    .status-dot { width:8px; height:8px; border-radius:50%; background:#22C55E; }
+    .status-mode { margin-left:auto; font-weight:700; color:var(--brand); }
+
+    .page-footer { text-align:center; padding:var(--space-md); font-size:var(--text-xs); color:var(--text-muted); border-top:1px solid var(--border); line-height:1.6; }
+    .page-footer a { color:var(--brand); text-decoration:none; }
+
+    /* ================================================================
+       响应式
+       ================================================================ */
+    @media (max-width:768px) {
+      .hot-grid { grid-template-columns:1fr; }
+      .banner-title { max-width:100%; }
+      .article-cover { width:80px; height:80px; }
+      .logo-wrap { width:40px; height:40px; }
+      .logo-wrap.pub-size { width:52px; height:52px; }
+    }
+    @media (max-width:480px) {
+      .hot-grid { display:flex; overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none; gap:var(--space-sm); }
+      .hot-grid::-webkit-scrollbar { display:none; }
+      .hot-card { min-width:260px; scroll-snap-align:start; }
+      .article-cover { width:68px; height:68px; }
+      .logo-wrap { width:36px; height:36px; }
+      .logo-wrap.pub-size { width:44px; height:44px; }
+      .nav-tab { min-width:48px; padding:4px 8px; font-size:9px; }
+      .page-main { padding:var(--space-md) var(--space-sm); padding-bottom:calc(var(--space-xl) + 100px); }
+    }
+  </style>
+</head>
+<body class="mode-player">
+
+  <!-- Header -->
+  <header class="page-header">
+    <div class="header-left">
+      <div class="header-logo">P</div>
+      <span class="header-title">游哒</span>
+      <span class="header-badge" id="headerBadge">玩家版</span>
+    </div>
+    <button id="modeToggleBtn" class="mode-toggle" type="button" title="切换玩家/专家模式">
+      <span id="modeLabel">玩家模式</span>
+      <span class="mode-toggle-knob"></span>
+    </button>
+  </header>
+
+  <!-- ============ 主内容区 ============ -->
+  <main class="page-main">
+
+    <!-- ===== 首页 ===== -->
+    <div class="page-panel active" data-page="home">
+
+      <!-- 玩家模式 -->
+      <div class="player-only">
+        <div id="bannerSection"></div>
+        <div class="cat-filters" id="catFilters"></div>
+        <div class="section-header"><span class="section-title">🔥 今日热点</span></div>
+        <div class="hot-grid" id="hotGrid"></div>
+        <div class="section-header"><span class="section-title">📰 热门拆解</span></div>
+        <div class="article-stream" id="articleStream"></div>
+        <div class="section-header"><span class="section-title">🏢 厂商专区</span></div>
+        <div class="pub-scroll" id="pubScroll"></div>
+      </div>
+
+      <!-- 专家模式 -->
+      <div class="expert-only">
+        <div class="expert-filter-bar" id="expertFilterBar"></div>
+        <div class="expert-section-header"><span class="expert-section-title">📌 重要事件</span><span class="expert-section-count" id="breakingCount">3条</span></div>
+        <div class="breaking-list" id="breakingList"></div>
+        <div class="expert-section-header"><span class="expert-section-title">⏱ 运营快讯</span><span class="expert-section-count" id="timelineCount">30条</span></div>
+        <div class="timeline" id="timeline"></div>
+        <div class="expert-section-header"><span class="expert-section-title">📊 竞品监测</span><span class="expert-section-count" id="compCount">6家</span></div>
+        <table class="comp-table" id="compTable"></table>
+      </div>
+    </div>
+
+    <!-- ===== 热点页 ===== -->
+    <div class="page-panel" data-page="hotspot">
+      <!-- 玩家模式 -->
+      <div class="player-only">
+        <div class="section-header"><span class="section-title">🔥 热点动态</span></div>
+        <div class="article-stream" id="hotspotPlayerStream"></div>
+      </div>
+      <!-- 专家模式 -->
+      <div class="expert-only">
+        <div class="expert-section-header"><span class="expert-section-title">⏱ 全量资讯</span><span class="expert-section-count" id="hotspotExpertCount">30条</span></div>
+        <div class="timeline" id="hotspotTimeline"></div>
+      </div>
+    </div>
+
+    <!-- ===== AI 分析页 ===== -->
+    <div class="page-panel" data-page="ai">
+      <div class="section-header"><span class="section-title">🤖 AI 运营拆解</span></div>
+      <div class="ai-card">
+        <div class="ai-label">输入内容或选择预置样例，一键生成运营分析报告</div>
+        <div class="ai-prefill" id="aiPrefill"></div>
+        <textarea class="ai-textarea" id="aiTextarea" placeholder="在此粘贴游戏运营相关内容，或点击下方样例按钮、以及任意内容旁的 AI 按钮自动填充…"></textarea>
+        <div class="ai-samples">
+          <button class="ai-sample-btn" data-sample="hkr">📋 星穹铁道 2.5 版本公告</button>
+          <button class="ai-sample-btn" data-sample="jk">📋 金铲铲之战 S13 赛季规则</button>
+          <button class="ai-sample-btn" data-sample="wz">📋 王者荣耀 全民电竞 2.0</button>
+        </div>
+        <div class="ai-checkboxes" id="aiCheckboxes">
+          <label><input type="checkbox" checked> 留存设计</label>
+          <label><input type="checkbox"> 商业化拆解</label>
+          <label><input type="checkbox"> 本地化建议</label>
+          <label><input type="checkbox"> 版本节奏评估</label>
+        </div>
+        <button class="ai-generate-btn" id="aiGenerateBtn"><i class="fa-solid fa-wand-magic-sparkles"></i> 生成分析报告</button>
+        <div class="ai-result" id="aiResult"></div>
+        <div class="ai-disclaimer"><i class="fa-solid fa-circle-info"></i> 演示版本 · 预置样例展示 · AI 结果仅为示例演示</div>
+      </div>
+    </div>
+
+    <!-- ===== 智库页 ===== -->
+    <div class="page-panel" data-page="wiki">
+      <!-- 玩家模式 -->
+      <div class="player-only">
+        <div class="section-header"><span class="section-title">📚 运营智库</span></div>
+        <div class="wiki-grid" id="wikiGrid"></div>
+      </div>
+      <!-- 专家模式 -->
+      <div class="expert-only">
+        <div class="expert-section-header"><span class="expert-section-title">📚 运营智库</span><span class="expert-section-count" id="wikiExpertCount">10篇</span></div>
+        <div class="wiki-list" id="wikiList"></div>
+      </div>
+    </div>
+
+    <!-- ===== 我的页 ===== -->
+    <div class="page-panel" data-page="profile">
+      <div class="section-header"><span class="section-title">⭐ 我的收藏</span></div>
+      <div class="fav-list" id="favList"></div>
+      <div class="empty-state" id="favEmpty">还没有收藏任何内容，点击内容旁的 ⭐ 按钮收藏</div>
+      <div class="about-block">
+        <h4><i class="fa-solid fa-circle-info"></i> 关于游哒</h4>
+        <p>游哒是一款面向游戏玩家与运营从业者的双模式垂直内容社区，提供游戏运营策略拆解、版本更新分析、商业化案例研究等专业内容。<br>本站为个人学习作品集，纯前端静态网页，无后端数据库，支持 GitHub Pages 直接部署。</p>
+        <button class="ai-sample-btn" onclick="document.getElementById('aboutModal').style.display='flex'" style="margin-top:var(--space-sm)">查看完整创作初衷 →</button>
+      </div>
+    </div>
+
+    <!-- 状态栏 -->
+    <div class="status-bar">
+      <span class="status-dot"></span>
+      <span>当前模式：</span>
+      <span class="status-mode" id="statusMode">玩家模式</span>
+    </div>
+  </main>
+
+  <!-- ============ 关于游哒 弹窗 ============ -->
+  <div class="about-modal-overlay" id="aboutModal" onclick="if(event.target===this)this.style.display='none'">
+    <div class="about-modal">
+      <h3><i class="fa-solid fa-compass"></i> 关于游哒</h3>
+      <div class="about-section">
+        <h4>为什么做游哒？</h4>
+        <p>当前游戏内容领域存在明显的两极断层：<br>· 面向普通玩家的社区娱乐性强，但缺少体系化的运营视角拆解，普通人想看懂游戏设计背后的逻辑，门槛很高；<br>· 面向从业者的专业数据工具价格高昂，且只有冰冷的大盘数据，缺少结合运营逻辑的深度解读，在校求职者与中小团队很难低成本触达。<br><br>因此我打造了「游哒」这款双模式垂直内容平台，希望用更低的门槛，让游戏爱好者看懂运营逻辑，让从业者与求职者高效获取结构化的分析工具与内容。</p>
+      </div>
+      <div class="about-section">
+        <h4>核心设计</h4>
+        <p><strong>玩家模式</strong>：轻量化卡片布局，轻松浏览游戏版本动态、运营拆解内容，用通俗视角看懂游戏设计。<br><strong>专家模式</strong>：高密度时间线布局，结构化呈现行业快讯、竞品动态与深度分析，服务高效办公与调研场景。<br><strong>AI拆解工具</strong>：内置分品类游戏运营专业分析框架，一键生成版本运营拆解报告，大幅降低内容产出与竞品调研的时间成本。</p>
+      </div>
+      <div class="about-section">
+        <h4>版本说明</h4>
+        <p>V1.0 为个人求职作品集版本，内容为静态预置演示，后续将持续迭代内容库与工具能力。</p>
+      </div>
+      <button class="about-close" onclick="document.getElementById('aboutModal').style.display='none'"><i class="fa-solid fa-xmark"></i> 关闭</button>
+    </div>
+  </div>
+
+  <!-- ============ 底部导航 ============ -->
+  <nav class="bottom-nav" id="bottomNav">
+    <div class="nav-slider" id="navSlider"></div>
+    <button class="nav-tab active" data-page="home"><i class="fa-solid fa-house nav-icon"></i><span>首页</span></button>
+    <button class="nav-tab" data-page="hotspot"><i class="fa-solid fa-fire nav-icon"></i><span>热点</span></button>
+    <button class="nav-tab" data-page="ai"><i class="fa-solid fa-robot nav-icon"></i><span>AI分析</span></button>
+    <button class="nav-tab" data-page="wiki"><i class="fa-solid fa-book nav-icon"></i><span>智库</span></button>
+    <button class="nav-tab" data-page="profile"><i class="fa-solid fa-user nav-icon"></i><span>我的</span></button>
+  </nav>
+
+  <!-- 页脚 -->
+  <footer class="page-footer">
+    游哒 · 游戏运营内容雷达 | 本站为个人学习作品集，所有游戏/厂商logo版权归对应公司所有，非商业用途<br>
+    Built with <i class="fa-solid fa-heart" style="color:#EF4444"></i> · <a href="#" onclick="navigateTo('profile');document.getElementById('aboutModal').style.display='flex';return false;">关于游哒</a>
+  </footer>
+
+  <!-- ================================================================
+       JavaScript — 全部逻辑
+       ================================================================ -->
+  <script>
+  (function() {
+    'use strict';
+
+    /* ==============================================================
+       1. 全局内容数据 — 两套模式共享，禁止重复
+       ============================================================== */
+
+    // 热度颜色
+    var HC = { S:'#DC2626', A:'#F97316', B:'#3B82F6', C:'#6B7280' };
+
+    // Logo URL（本地图片 + 降级处理）
+    // 将所有游戏logo图片放到与 index.html 同目录下的 logos/ 文件夹中
+    // 文件命名为: yuanshen.jpg, xingqiong.jpg, juequ.jpg, benghuai3.jpg,
+    //             mingchao.jpg, zhanpa.jpg, wangzhe.jpg, heping.jpg,
+    //             jinchan.jpg, sanjiao.jpg, mingri.jpg, guangyu.jpg
+    //             mihoyo.jpg, tencent.jpg, kuro.jpg, netease.jpg, hypergryph.jpg
+    // 如果图片不存在，自动显示品牌色+首字母的占位样式
+    var LOGOS = {
+      mihoyo:    'logos/mihoyo.jpg',
+      tencent:   'logos/tencent.jpg',
+      kuro:      'logos/kuro.jpg',
+      netease:   'logos/netease.jpg',
+      hypergryph:'logos/hypergryph.jpg',
+      lilith:    'logos/lilith.jpg',
+      yuanshen:  'logos/yuanshen.jpg',
+      xingqiong: 'logos/xingqiong.jpg',
+      juequ:     'logos/juequ.jpg',
+      benghuai3: 'logos/benghuai3.jpg',
+      mingchao:  'logos/mingchao.jpg',
+      zhanpa:    'logos/zhanpa.jpg',
+      wangzhe:   'logos/wangzhe.jpg',
+      heping:    'logos/heping.jpg',
+      jinchan:   'logos/jinchan.jpg',
+      sanjiao:   'logos/sanjiao.jpg',
+      mingri:    'logos/mingri.jpg',
+      guangyu:   'logos/guangyu.jpg'
+    };
+
+    // Logo 降级颜色
+    var LOGO_FALLBACK = {
+      mihoyo:'#667EEA', tencent:'#F2994A', kuro:'#11998E', netease:'#E53E3E',
+      hypergryph:'#2D3748', yuanshen:'#60A5FA', xingqiong:'#4F46E5',
+      juequ:'#F472B6', benghuai3:'#EC4899', mingchao:'#34D399',
+      zhanpa:'#EC4899', wangzhe:'#F2994A', heping:'#007CF0',
+      jinchan:'#F59E0B', sanjiao:'#14B8A6', mingri:'#2D3748', guangyu:'#E53E3E',
+      lilith:'#6D28D9'
+    };
+
+    // AI 预置样例
+    var AI_SAMPLES = {
+      hkr: {
+        title: '崩坏：星穹铁道 2.5 版本「异星迷航」联动活动公告',
+        text: '【游戏】崩坏：星穹铁道\n【版本】2.5「异星迷航」\n【上线时间】2026年6月20日\n\n核心内容：\n1. 限定五星角色「织光者」登场，光属性智识命途\n2. 联动限定活动「异星迷航」限时开放（6.20-7.18）\n3. 新地图「星际贸易港」开放\n4. 累充回馈活动「星海礼赞」上线\n5. 全新遗器副本「虚空裂隙」开放\n\n商业化结构：限时卡池+累充回馈+联动限定礼包三层结构。'
+      },
+      jk: {
+        title: '金铲铲之战 S13 赛季「星际征途」规则说明',
+        text: '【游戏】金铲铲之战\n【赛季】S13「星际征途」\n【更新日期】2026年6月15日\n\n核心玩法变更：\n1. 新增「星舰」羁绊体系，6枚棋子\n2. 引入「星际矿场」经济系统替代传统利息\n3. 新增 5 费棋子「银河霸主」\n4. 排位赛重置 + 赛季限定棋盘皮肤\n5. 双人模式新增「星门传送」机制\n\n用户增长设计：赛季首周登录送限定头像框，邀请回流玩家送星之碎片。'
+      },
+      wz: {
+        title: '王者荣耀 全民电竞 2.0 活动说明',
+        text: '【游戏】王者荣耀\n【活动】全民电竞 2.0\n【上线时间】2026年6月18日\n\n核心机制：\n1. 微信好友组队裂变：邀请3人组队额外获电竞积分\n2. 战队任务系统：每日/周任务奖励升级\n3. 电竞积分商城：限时兑换传说皮肤碎片\n4. 全国大赛线上赛区开放，首轮海选6.25截止\n5. 朋友圈分享战绩得额外抽奖机会\n\n裂变效果：首日参与用户突破1200万，组队完成率达78%。'
+      }
+    };
+
+    // ============ 主数据源 ============
+    window.CONTENT_DATA = {
+      pageTitle: '游哒 运营拆解',
+
+      /* --- Banner --- */
+      banner: { badge:'🔥 热门专题', title:'2026 暑期版本运营拆解专题', subtitle:'深度拆解多款头部游戏最新暑期版本运营策略与活动设计' },
+
+      /* --- 分类 --- */
+      categories: [
+        { id:'all', label:'全部', icon:'fa-solid fa-layer-group' },
+        { id:'mihoyo', label:'米哈游', icon:'fa-solid fa-building' },
+        { id:'tencent', label:'腾讯', icon:'fa-solid fa-building' },
+        { id:'kuro', label:'库洛', icon:'fa-solid fa-building' }
+      ],
+
+      /* --- 今日热点 --- */
+      hotTopics: [
+        { id:'ht1', game:'原神', title:'5.8 海岛大版本活动拆解：限时地图 + 角色邀约的双驱动设计', coverColor:'linear-gradient(135deg,#60A5FA,#818CF8)', logoKey:'yuanshen', category:'mihoyo', hotness:'S' },
+        { id:'ht2', game:'鸣潮', title:'1.4「暗涌」版本运营节奏复盘：从预热到爆发 48h 策略拆解', coverColor:'linear-gradient(135deg,#34D399,#6EE7B7)', logoKey:'mingchao', category:'kuro', hotness:'A' },
+        { id:'ht3', game:'王者荣耀', title:'全民电竞 2.0 社交裂变机制深度拆解与数据评估', coverColor:'linear-gradient(135deg,#F472B6,#C084FC)', logoKey:'wangzhe', category:'tencent', hotness:'A' }
+      ],
+
+      /* --- 深度拆解报告 10 篇 --- */
+      reports: [
+        { id:'r1', game:'崩坏：星穹铁道', company:'mihoyo', category:'活动拆解', hotness:'S', time:'2026-06-22', summary:'2.5版本「异星迷航」联动活动商业化结构层叠拆解：限时卡池+累充回馈+联动限定礼包三层结构分析，含用户分层与定价策略。', logoKey:'xingqiong' },
+        { id:'r2', game:'原神', company:'mihoyo', category:'活动拆解', hotness:'S', time:'2026-06-21', summary:'5.8海岛限时地图「千星群岛」沉浸式叙事与商业化埋点拆解：12个叙事锚点与4条付费转化路径逐帧分析。', logoKey:'yuanshen' },
+        { id:'r3', game:'鸣潮', company:'kuro', category:'版本复盘', hotness:'A', time:'2026-06-20', summary:'1.4「暗涌」版本48小时预热→爆发全链路复盘：悬念预告、社区解谜到大版本上线首日留存策略评估。', logoKey:'mingchao' },
+        { id:'r4', game:'王者荣耀', company:'tencent', category:'用户增长', hotness:'A', time:'2026-06-19', summary:'全民电竞2.0：社交裂变+组队奖励双轮驱动的用户增长模型分析，首小时参与用户突破1200万。', logoKey:'wangzhe' },
+        { id:'r5', game:'绝区零', company:'mihoyo', category:'版本更新', hotness:'B', time:'2026-06-18', summary:'1.3版本更新后主线剧情好评率91%：叙事驱动运营模式再获验证，社区UGC产出量环比增长210%。', logoKey:'juequ' },
+        { id:'r6', game:'战双帕弥什', company:'kuro', category:'运营策略', hotness:'B', time:'2026-06-17', summary:'「湮灭残响」版本老游戏焕新策略5个关键决策点：版本包装、社群激活、回流福利三维拆解。', logoKey:'zhanpa' },
+        { id:'r7', game:'金铲铲之战', company:'tencent', category:'玩法设计', hotness:'A', time:'2026-06-16', summary:'S13赛季「星际征途」经济系统重构拆解：「星际矿场」替代传统利息机制的设计逻辑与留存影响。', logoKey:'jinchan' },
+        { id:'r8', game:'和平精英', company:'tencent', category:'玩法更新', hotness:'B', time:'2026-06-15', summary:'暑期「海岛3.0」玩法更新DAU环比提升19%：电竞观赛入口嵌入主界面的用户路径设计。', logoKey:'heping' },
+        { id:'r9', game:'崩坏3', company:'mihoyo', category:'IP运营', hotness:'C', time:'2026-06-14', summary:'2026夏日嘉年华线下活动售票首日售出4.2万张：IP线下活动与线上联动的内容运营模型。', logoKey:'benghuai3' },
+        { id:'r10', game:'三角洲行动', company:'tencent', category:'社区运营', hotness:'B', time:'2026-06-13', summary:'暑期超量内容更新的社区情绪管理：痛点预判与危机应对6步法，分层补偿策略复盘。', logoKey:'sanjiao' }
+      ],
+
+      /* --- 热点快讯 30 条 --- */
+      newsTimeline: [
+        { id:'n1', time:'06-24 15:06', game:'原神', company:'mihoyo', content:'5.8版本首日流水预估突破2.8亿元，限时卡池抽取率达历史峰值23%', hotness:'S', tags:['版本上线','商业化','数据表现'] },
+        { id:'n2', time:'06-24 14:55', game:'鸣潮', company:'kuro', content:'1.4版本社区解谜第二弹谜题解密率已达72%，运营团队追加隐藏奖励', hotness:'A', tags:['社区活动','用户参与'] },
+        { id:'n3', time:'06-24 14:40', game:'王者荣耀', company:'tencent', content:'电竞2.0组队任务「五黑上分」日均完成组队数突破800万', hotness:'A', tags:['社交裂变','数据表现'] },
+        { id:'n4', time:'06-24 14:18', game:'崩坏：星穹铁道', company:'mihoyo', content:'2.5版本联动限定礼包首日售罄率94%，累充回馈阶梯定价模型获高转化', hotness:'A', tags:['商业化','联动活动'] },
+        { id:'n5', time:'06-24 13:52', game:'明日方舟', company:'hypergryph', content:'2026夏日嘉年华线下售票首日售出4.2万张，线上直播预约破60万', hotness:'B', tags:['线下活动','IP运营'] },
+        { id:'n6', time:'06-24 13:30', game:'三角洲行动', company:'tencent', content:'暑期更新后社区反馈分化：正面舆情58%，运营发布分层补偿公告', hotness:'B', tags:['社区运营','舆情管理'] },
+        { id:'n7', time:'06-24 12:45', game:'战双帕弥什', company:'kuro', content:'「湮灭残响」版本回流用户次日留存达41%，老游戏焕新策略初现成效', hotness:'B', tags:['用户回流','留存数据'] },
+        { id:'n8', time:'06-24 12:10', game:'绝区零', company:'mihoyo', content:'1.3版本主线好评率91%：叙事驱动运营模式再获社区验证', hotness:'B', tags:['版本更新','用户口碑'] },
+        { id:'n9', time:'06-24 11:35', game:'和平精英', company:'tencent', content:'「海岛3.0」玩法更新DAU环比提升19%，电竞观赛入口嵌入主界面', hotness:'A', tags:['玩法更新','电竞运营'] },
+        { id:'n10', time:'06-24 10:58', game:'鸣潮', company:'kuro', content:'1.4版本BOSS挑战「深渊裂隙」通关率仅8%，运营紧急下调数值难度', hotness:'C', tags:['活动运营','数值调整'] },
+        { id:'n11', time:'06-24 10:20', game:'光与夜之恋', company:'tencent', content:'暑期限定卡池SSR爆率调整引发轻度舆情，客服响应时间缩短至12分钟', hotness:'C', tags:['舆情管理','客服响应'] },
+        { id:'n12', time:'06-24 09:50', game:'原神', company:'mihoyo', content:'千星群岛限时地图12个叙事锚点全开放，玩家UGC内容超3万条', hotness:'B', tags:['UGC生态','内容运营'] },
+        { id:'n13', time:'06-23 18:30', game:'金铲铲之战', company:'tencent', content:'S13赛季首周数据：新羁绊「星舰」使用率38%，经济系统重构获积极反馈', hotness:'A', tags:['版本数据','玩法分析'] },
+        { id:'n14', time:'06-23 17:15', game:'崩坏3', company:'mihoyo', content:'夏日嘉年华限定皮肤「海浪旋律」上线首日售出超50万套', hotness:'B', tags:['商业化','限定皮肤'] },
+        { id:'n15', time:'06-23 16:00', game:'王者荣耀', company:'tencent', content:'全民电竞2.0全国大赛报名人数破300万，创历届新高', hotness:'A', tags:['电竞赛事','用户参与'] },
+        { id:'n16', time:'06-23 14:45', game:'崩坏：星穹铁道', company:'mihoyo', content:'「异星迷航」活动次日留存率达68%，超越此前联动活动最高纪录', hotness:'A', tags:['活动数据','留存分析'] },
+        { id:'n17', time:'06-23 13:20', game:'原神', company:'mihoyo', content:'5.8版本更新后登顶16国App Store畅销榜，海外市场表现超预期', hotness:'S', tags:['市场表现','海外运营'] },
+        { id:'n18', time:'06-23 12:00', game:'鸣潮', company:'kuro', content:'1.4版本社区二创活动投稿量突破1.2万件，远超上版本同期数据', hotness:'B', tags:['社区运营','UGC'] },
+        { id:'n19', time:'06-23 11:10', game:'和平精英', company:'tencent', content:'暑期版本新增「战术滑铲」机制引发竞技平衡讨论，官方回应将优化', hotness:'C', tags:['社区反馈','平衡性'] },
+        { id:'n20', time:'06-23 10:30', game:'绝区零', company:'mihoyo', content:'1.3版本新角色PV播放量24h突破800万，创角色预热内容新高', hotness:'B', tags:['内容营销','用户关注'] },
+        { id:'n21', time:'06-22 18:00', game:'明日方舟', company:'hypergryph', content:'夏日嘉年华线下活动预告视频B站播放量12h破200万，弹幕互动活跃', hotness:'B', tags:['线下活动','内容营销'] },
+        { id:'n22', time:'06-22 16:40', game:'王者荣耀', company:'tencent', content:'电竞2.0赛季限定皮肤「龙魂战甲」预售开启2小时销售额破1亿', hotness:'S', tags:['商业化','限定皮肤'] },
+        { id:'n23', time:'06-22 15:20', game:'战双帕弥什', company:'kuro', content:'「湮灭残响」版本限时BOSS挑战首周参与率达64%，高于上版本同期', hotness:'B', tags:['活动数据','用户参与'] },
+        { id:'n24', time:'06-22 14:00', game:'金铲铲之战', company:'tencent', content:'S13新增「星际矿场」经济系统引发策略深度讨论，职业选手纷纷出攻略', hotness:'B', tags:['社区讨论','策略分析'] },
+        { id:'n25', time:'06-22 12:30', game:'原神', company:'mihoyo', content:'千星群岛限时地图解谜完成率首日达45%，玩家社群自发组建攻略组', hotness:'B', tags:['社区协作','内容运营'] },
+        { id:'n26', time:'06-22 11:00', game:'三角洲行动', company:'tencent', content:'暑期更新首周DAU环比增长22%，新地图「沙漠要塞」成最受欢迎模式', hotness:'A', tags:['数据表现','版本更新'] },
+        { id:'n27', time:'06-22 09:45', game:'崩坏：星穹铁道', company:'mihoyo', content:'新角色「织光者」首日抽取率达角色上线历史第3位，光属性热度高', hotness:'A', tags:['商业化','角色数据'] },
+        { id:'n28', time:'06-21 17:30', game:'鸣潮', company:'kuro', content:'1.4版本新增「深渊裂隙」多人副本首周通关率仅8%，官方宣布优化方案', hotness:'C', tags:['数值调整','官方回应'] },
+        { id:'n29', time:'06-21 16:00', game:'王者荣耀', company:'tencent', content:'全民电竞2.0微信裂变渠道贡献新用户占比达35%，社交传播效果显著', hotness:'A', tags:['用户增长','社交裂变'] },
+        { id:'n30', time:'06-21 14:20', game:'崩坏3', company:'mihoyo', content:'夏日嘉年华限定活动预约人数突破120万，创该IP线下联动历史新高', hotness:'B', tags:['活动预约','IP运营'] }
+      ],
+
+      /* --- 厂商专区 --- */
+      publishers: [
+        { id:'mihoyo', name:'米哈游', count:'32篇拆解', bgColor:'linear-gradient(135deg,#667EEA,#764BA2)', icon:'fa-solid fa-gem' },
+        { id:'tencent', name:'腾讯游戏', count:'28篇拆解', bgColor:'linear-gradient(135deg,#F2994A,#F2C94C)', icon:'fa-solid fa-gamepad' },
+        { id:'kuro', name:'库洛游戏', count:'16篇拆解', bgColor:'linear-gradient(135deg,#11998E,#38EF7D)', icon:'fa-solid fa-bolt' },
+        { id:'netease', name:'网易游戏', count:'21篇拆解', bgColor:'linear-gradient(135deg,#E53E3E,#ED8936)', icon:'fa-solid fa-dragon' },
+        { id:'hypergryph', name:'鹰角网络', count:'9篇拆解', bgColor:'linear-gradient(135deg,#2D3748,#4A5568)', icon:'fa-solid fa-tower-cell' },
+        { id:'lilith', name:'莉莉丝', count:'11篇拆解', bgColor:'linear-gradient(135deg,#6D28D9,#A78BFA)', icon:'fa-solid fa-shield-halved' }
+      ],
+
+      /* --- 重要事件 --- */
+      breakingEvents: [
+        { id:'be1', time:'14:32', game:'原神', title:'5.8海岛大版本正式上线：首日登顶16国畅销榜，限时地图+角色邀约双驱动', hotness:'S', company:'mihoyo' },
+        { id:'be2', time:'11:15', game:'王者荣耀', title:'全民电竞2.0上线：微信社交裂变通道全量开放，首小时参与用户突破1200万', hotness:'S', company:'tencent' },
+        { id:'be3', time:'09:48', game:'鸣潮', title:'1.4「暗涌」版本更新紧急加开服务器，社区热度飙至TapTap热搜第1位', hotness:'S', company:'kuro' }
+      ],
+
+      /* --- 竞品监测 --- */
+      competitorIntel: [
+        { publisher:'米哈游', ver:'5.8 / 2.5 / 1.3', date:'06/20', move:'三款产品同步大版本更新，协同运营策略明显', status:'🚀 大版本上线', sc:'#DC2626' },
+        { publisher:'腾讯游戏', ver:'暑期档·电竞2.0', date:'06/18', move:'微信社交裂变+全民电竞品牌升级+多产品协同', status:'📈 数据攀升', sc:'#F59E0B' },
+        { publisher:'库洛游戏', ver:'1.4', date:'06/19', move:'悬念预热→爆发全链路节奏成熟，社区话题热度高', status:'🔥 热度飙升', sc:'#EF4444' },
+        { publisher:'网易游戏', ver:'S7', date:'06/10', move:'赛季制大版本更新+电竞生态重构', status:'📊 平稳运营', sc:'#10B981' },
+        { publisher:'鹰角网络', ver:'3.5 / 嘉年华', date:'06/05', move:'线下嘉年华+线上联动同时推进，IP运营力升级', status:'🎪 线下活动', sc:'#8B5CF6' },
+        { publisher:'莉莉丝', ver:'远征·第4赛季', date:'06/15', move:'赛季制SLG用户回流策略升级', status:'🔄 回流激活', sc:'#6366F1' }
+      ],
+
+      /* --- 筛选维度 --- */
+      expertFilters: {
+        hotness: [{ label:'全部等级', value:'all' },{ label:'S级', value:'S' },{ label:'A级', value:'A' },{ label:'B级', value:'B' },{ label:'C级', value:'C' }],
+        category: [{ label:'全部分类', value:'all' },{ label:'版本更新', value:'ver' },{ label:'商业化', value:'com' },{ label:'社交/社区', value:'soc' },{ label:'数据表现', value:'data' }],
+        publisher: [{ label:'全部厂商', value:'all' },{ label:'米哈游', value:'mihoyo' },{ label:'腾讯', value:'tencent' },{ label:'库洛', value:'kuro' },{ label:'鹰角', value:'hypergryph' }]
+      }
+    };
+
+    /* ==============================================================
+       2. 工具函数
+       ============================================================== */
+    function esc(s) { var d=document.createElement('div'); d.appendChild(document.createTextNode(s)); return d.innerHTML; }
+    function hc(h) { return 'hotness-'+(h||'B'); }
+
+    // 安全取值工具 — 字段缺失时返回空字符串，禁止显示 undefined
+    function val(v) { return (v === undefined || v === null) ? '' : v; }
+
+    // 从 summary 生成 title（若数据缺少 title 字段）
+    function getTitle(item) {
+      if (val(item.title)) return item.title;
+      if (val(item.summary)) { var s = item.summary; var p = s.indexOf('：'); return p > 0 ? s.substring(0, p) : s.substring(0, Math.min(30, s.length)); }
+      if (val(item.content)) { var c = item.content; return c.length > 30 ? c.substring(0, 30) + '…' : c; }
+      return '';
+    }
+
+    // Logo 图片渲染（带降级）
+    // key: LOGOS中的键名, alt: 显示文本（取首字作为占位）, cls: 额外CSS类名
+    function logoImg(key, alt, cls) {
+      var url = LOGOS[key] || '';
+      var fb = LOGO_FALLBACK[key] || '#7C5CFF';
+      var letter = (alt && alt.length > 0) ? alt.charAt(0) : (key && key.length > 0 ? key.charAt(0).toUpperCase() : 'G');
+      if (!url) return '<div class="logo-fallback ' + cls + '" style="background:' + fb + '">' + esc(letter) + '</div>';
+      return '<img class="game-logo ' + cls + '" src="' + esc(url) + '" alt="' + esc(alt || '') + '" loading="lazy" onerror="this.onerror=null;this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\';">' +
+             '<div class="logo-fallback ' + cls + '" style="background:' + fb + ';display:none">' + esc(letter) + '</div>';
+    }
+
+    /* ==============================================================
+       3. 模式管理
+       ============================================================== */
+    var SK='app-mode-preference', MP='mode-player', ME='mode-expert';
+    function loadMode(){ try{ var v=localStorage.getItem(SK); return v===ME?ME:MP; }catch(e){} return MP; }
+    function saveMode(m){ try{localStorage.setItem(SK,m);}catch(e){} }
+    function setBody(m){ document.body.classList.remove(MP,ME); document.body.classList.add(m); }
+    function curMode(){ return document.body.classList.contains(ME)?ME:MP; }
+
+    function toggleMode(){
+      var n=curMode()===MP?ME:MP; setBody(n); saveMode(n); updateModeUI(n);
+    }
+    function updateModeUI(m){
+      var nm=m===ME?'专家模式':'玩家模式';
+      var lb=document.getElementById('modeLabel'), st=document.getElementById('statusMode'), bd=document.getElementById('headerBadge');
+      if(lb)lb.textContent=nm; if(st)st.textContent=nm; if(bd)bd.textContent=m===ME?'专家版':'玩家版';
+    }
+
+    /* ==============================================================
+       4. 底部导航 + 滑块动画
+       ============================================================== */
+    function updateNavSlider(pageId) {
+      var activeTab = document.querySelector('.nav-tab[data-page="'+pageId+'"]');
+      var slider = document.getElementById('navSlider');
+      if (!activeTab || !slider) return;
+      var nav = document.getElementById('bottomNav');
+      var navRect = nav.getBoundingClientRect();
+      var tabRect = activeTab.getBoundingClientRect();
+      slider.style.left = (tabRect.left - navRect.left) + 'px';
+      slider.style.width = tabRect.width + 'px';
+    }
+
+    function navigateTo(pageId) {
+      document.querySelectorAll('.page-panel').forEach(function(p){ p.classList.toggle('active', p.getAttribute('data-page')===pageId); });
+      document.querySelectorAll('.nav-tab').forEach(function(t){ t.classList.toggle('active', t.getAttribute('data-page')===pageId); });
+      updateNavSlider(pageId);
+      if (pageId==='profile') renderFavorites();
+      if (pageId==='hotspot') { renderHotspotPage(); }
+      window.scrollTo({top:0,behavior:'smooth'});
+    }
+
+    function initBottomNav() {
+      var nav=document.getElementById('bottomNav');
+      if(!nav)return;
+      nav.querySelectorAll('.nav-tab').forEach(function(t){
+        t.addEventListener('click',function(){ var p=t.getAttribute('data-page'); if(p)navigateTo(p); });
+      });
+      // 初始滑块位置
+      setTimeout(function(){ updateNavSlider('home'); }, 200);
+      // 窗口大小变化时重新计算
+      window.addEventListener('resize', function(){
+        var ap=document.querySelector('.nav-tab.active');
+        if(ap) updateNavSlider(ap.getAttribute('data-page'));
+      });
+    }
+
+    /* ==============================================================
+       5. 收藏系统
+       ============================================================== */
+    var FK='app-bookmarks', bookmarks={};
+    function loadBm(){ try{ var r=localStorage.getItem(FK); if(r)bookmarks=JSON.parse(r); }catch(e){bookmarks={};} }
+    function saveBm(){ try{localStorage.setItem(FK,JSON.stringify(bookmarks));}catch(e){} }
+    function isBm(id){ return !!bookmarks[id]; }
+    function toggleBm(id){ if(bookmarks[id])delete bookmarks[id]; else bookmarks[id]=true; saveBm(); refreshAll(); renderFavorites(); }
+
+    function findBookmarked(){
+      var d=window.CONTENT_DATA, r=[];
+      Object.keys(bookmarks).forEach(function(bid){
+        [d.hotTopics,d.reports,d.breakingEvents,d.newsTimeline].forEach(function(arr){
+          if(!arr)return; arr.forEach(function(it){
+            if(it.id===bid) r.push({id:it.id, title:getTitle(it), game:it.game||'', time:it.time||'', hotness:it.hotness||'B'});
+          });
+        });
+      });
+      return r;
+    }
+
+    function renderFavorites(){
+      var favs=findBookmarked(), el=document.getElementById('favList'), emp=document.getElementById('favEmpty');
+      if(!el)return;
+      if(!favs.length){ el.innerHTML=''; if(emp)emp.style.display='block'; return; }
+      if(emp)emp.style.display='none';
+      el.innerHTML=favs.map(function(f){
+        return '<div class="fav-item"><div class="fav-info"><div class="fav-title">'+esc(f.title || '')+'</div><div class="fav-meta">'+esc(f.game || '')+(f.time?' · '+esc(f.time):'')+' · <span class="hotness-badge '+hc(f.hotness)+'">'+esc(f.hotness || '')+'</span></div></div><button class="fav-remove" data-id="'+esc(f.id || '')+'">取消收藏</button></div>';
+      }).join('');
+      el.querySelectorAll('.fav-remove').forEach(function(b){ b.addEventListener('click',function(e){ e.stopPropagation(); var id=b.getAttribute('data-id'); if(id)toggleBm(id); }); });
+    }
+
+    /* ==============================================================
+       6. 通用按钮绑定
+       ============================================================== */
+    function bindBtns(){
+      document.querySelectorAll('.ai-btn').forEach(function(b){
+        if(b._bnd)return; b._bnd=true;
+        b.addEventListener('click',function(e){ e.stopPropagation(); var g=b.getAttribute('data-game')||'', t=b.getAttribute('data-title')||''; jumpAI(g,t); });
+      });
+      document.querySelectorAll('.bookmark-btn').forEach(function(b){
+        if(b._bnd2)return; b._bnd2=true;
+        b.addEventListener('click',function(e){ e.stopPropagation(); var id=b.getAttribute('data-id'); if(id)toggleBm(id); });
+      });
+    }
+
+    function jumpAI(game,title){
+      navigateTo('ai');
+      setTimeout(function(){
+        var pe=document.getElementById('aiPrefill'), ta=document.getElementById('aiTextarea');
+        var text='【游戏】'+game+'\n【分析对象】'+title+'\n\n请在此输入更多分析要求，或直接点击「生成分析报告」…';
+        if(pe){ pe.style.display='block'; pe.textContent='📌 已填充：'+game+' — '+title; }
+        if(ta)ta.value=text;
+      },100);
+    }
+
+    /* ==============================================================
+       7. 玩家模式渲染
+       ============================================================== */
+    var activeCat='all';
+    function setCat(c){ activeCat=c; renderCats(); renderHot(); renderArticles(); renderHotspotPage(); }
+
+    function renderBanner(){
+      var el=document.getElementById('bannerSection'); if(!el)return;
+      var b=window.CONTENT_DATA.banner||{};
+      el.innerHTML='<div class="banner-card"><div class="banner-badge">'+esc(b.badge||'')+'</div><div class="banner-title">'+esc(b.title||'')+'</div><div class="banner-sub">'+esc(b.subtitle||'')+'</div></div>';
+    }
+
+    function renderCats(){
+      var el=document.getElementById('catFilters'); if(!el)return;
+      var cats=window.CONTENT_DATA.categories||[];
+      el.innerHTML=cats.map(function(c){
+        return '<button class="cat-pill'+(c.id===activeCat?' active':'')+'" data-cat="'+esc(c.id)+'"><i class="'+esc(c.icon||'')+'" style="font-size:14px"></i> '+esc(c.label)+'</button>';
+      }).join('');
+      el.querySelectorAll('.cat-pill').forEach(function(b){ b.addEventListener('click',function(){ var cid=b.getAttribute('data-cat'); if(cid)setCat(cid); }); });
+    }
+
+    function renderHot(){
+      var el=document.getElementById('hotGrid'); if(!el)return;
+      var items=window.CONTENT_DATA.hotTopics||[];
+      var filt=activeCat==='all'?items:items.filter(function(h){return h.category===activeCat;});
+      if(!filt.length){ el.innerHTML='<div class="empty-state">暂无该分类的热点</div>'; return; }
+      el.innerHTML=filt.map(function(h){
+        return '<div class="hot-card"><div class="hot-cover" style="background:'+esc(val(h.coverColor))+'"><span class="hot-cover-label">'+esc(val(h.game))+'</span></div><div class="hot-body"><div class="hot-meta"><span class="hot-game">'+esc(val(h.game))+'</span><span class="hotness-badge '+hc(h.hotness)+'">'+esc(val(h.hotness))+'</span></div><div class="hot-title">'+esc(val(h.title))+'</div><button class="ai-btn" data-game="'+esc(val(h.game))+'" data-title="'+esc(val(h.title))+'"><i class="fa-solid fa-robot"></i> AI深度拆解</button> <button class="bookmark-btn'+(isBm(h.id)?' bookmarked':'')+'" data-id="'+esc(val(h.id))+'"><i class="fa-solid fa-star"></i></button></div></div>';
+      }).join('');
+      bindBtns();
+    }
+
+    function renderArticles(){
+      var el=document.getElementById('articleStream'); if(!el)return;
+      var items=window.CONTENT_DATA.reports||[];
+      var filt=activeCat==='all'?items:items.filter(function(a){return a.company===activeCat;});
+      if(!filt.length){ el.innerHTML='<div class="empty-state">暂无该分类的文章</div>'; return; }
+      el.innerHTML=filt.map(function(a){
+        return '<div class="article-card"><div class="article-cover" style="background:'+esc(LOGO_FALLBACK[a.logoKey]||'#7C5CFF')+'"><div class="logo-wrap">'+logoImg(a.logoKey,a.game,'')+'</div></div><div class="article-body"><div class="article-title">'+esc(getTitle(a))+'</div><div class="article-summary">'+esc(val(a.summary))+'</div><div class="article-meta"><span>'+esc(val(a.game))+'</span><span>'+esc(val(a.time))+'</span><span class="hotness-badge '+hc(a.hotness)+'">'+esc(val(a.hotness))+'</span></div><div style="display:flex;align-items:center;gap:8px"><button class="ai-btn" data-game="'+esc(val(a.game))+'" data-title="'+esc(getTitle(a))+'"><i class="fa-solid fa-robot"></i> AI深度拆解</button><button class="bookmark-btn'+(isBm(a.id)?' bookmarked':'')+'" data-id="'+esc(val(a.id))+'"><i class="fa-solid fa-star"></i></button></div></div></div>';
+      }).join('');
+      bindBtns();
+    }
+
+    function renderPubs(){
+      var el=document.getElementById('pubScroll'); if(!el)return;
+      var pubs=window.CONTENT_DATA.publishers||[];
+      el.innerHTML=pubs.map(function(p){
+        var lk=p.id||'';
+        return '<div class="pub-card"><div class="pub-avatar" style="background:'+esc(val(p.bgColor))+'"><div class="logo-wrap pub-size">'+logoImg(lk,val(p.name),'')+'</div></div><div class="pub-name">'+esc(val(p.name))+'</div><div class="pub-count">'+esc(val(p.count))+'</div></div>';
+      }).join('');
+    }
+
+    /* ==============================================================
+       8. 专家模式渲染
+       ============================================================== */
+    var expF={hotness:'all',category:'all',publisher:'all'};
+    function setExpF(d,v){ expF[d]=v; renderExpBar(); renderBreaking(); renderTimeline(); renderHotspotPage(); }
+
+    function renderExpBar(){
+      var el=document.getElementById('expertFilterBar'); if(!el)return;
+      var f=window.CONTENT_DATA.expertFilters||{};
+      var rows=[{label:'热度',dim:'hotness',items:f.hotness},{label:'分类',dim:'category',items:f.category},{label:'厂商',dim:'publisher',items:f.publisher}];
+      el.innerHTML=rows.map(function(r){
+        return '<div class="expert-filter-row"><span class="expert-filter-label">'+esc(r.label)+'</span><div class="expert-filter-chips">'+(r.items||[]).map(function(c){ return '<button class="expert-chip'+(c.value===expF[r.dim]?' active':'')+'" data-dim="'+esc(r.dim)+'" data-val="'+esc(c.value)+'">'+esc(c.label)+'</button>'; }).join('')+'</div></div>';
+      }).join('');
+      el.querySelectorAll('.expert-chip').forEach(function(b){ b.addEventListener('click',function(){ var d=b.getAttribute('data-dim'),v=b.getAttribute('data-val'); if(d&&v)setExpF(d,v); }); });
+    }
+
+    function filterNews(it){
+      var f=expF;
+      if(f.hotness!=='all'&&it.hotness!==f.hotness)return false;
+      if(f.publisher!=='all'&&it.company!==f.publisher)return false;
+      if(f.category!=='all'){
+        var t=it.tags||[], map={ver:['版本','更新','上线'],com:['商业化','付费','定价','售罄','限定'],soc:['社区','社交','裂变','舆情','UGC','口碑','客服','协作','攻略'],data:['数据','留存','DAU','流水','转化','通关','参与','注册']};
+        var kw=map[f.category]||[];
+        if(!kw.some(function(k){ return t.some(function(tg){return tg.indexOf(k)!==-1;})||(it.content||'').indexOf(k)!==-1; })) return false;
+      }
+      return true;
+    }
+
+    function renderBreaking(){
+      var el=document.getElementById('breakingList'); if(!el)return;
+      var items=window.CONTENT_DATA.breakingEvents||[];
+      var filt=items.filter(filterNews);
+      var ce=document.getElementById('breakingCount'); if(ce)ce.textContent=filt.length+'条';
+      if(!filt.length){ el.innerHTML='<div class="empty-state">暂无匹配的重要事件</div>'; return; }
+      el.innerHTML=filt.map(function(e){
+        return '<div class="breaking-item"><span class="breaking-time">'+esc(val(e.time))+'</span><span class="breaking-dot" style="background:'+HC[e.hotness]+';box-shadow:0 0 0 3px '+HC[e.hotness]+'1A"></span><div class="breaking-body"><div class="breaking-game">'+esc(val(e.game))+'</div><div class="breaking-title">'+esc(val(e.title))+'</div></div><span class="hotness-badge '+hc(e.hotness)+'" style="margin-top:4px">'+esc(val(e.hotness))+'</span><button class="ai-btn" style="margin-left:8px;flex-shrink:0" data-game="'+esc(val(e.game))+'" data-title="'+esc(val(e.title))+'"><i class="fa-solid fa-robot"></i> AI拆解</button><button class="bookmark-btn'+(isBm(e.id)?' bookmarked':'')+'" data-id="'+esc(val(e.id))+'" style="margin-left:4px"><i class="fa-solid fa-star"></i></button></div>';
+      }).join('');
+      bindBtns();
+    }
+
+    function renderTimeline(){
+      var el=document.getElementById('timeline'); if(!el)return;
+      var items=window.CONTENT_DATA.newsTimeline||[];
+      var filt=items.filter(filterNews);
+      var ce=document.getElementById('timelineCount'); if(ce)ce.textContent=filt.length+'条';
+      if(!filt.length){ el.innerHTML='<div class="empty-state">暂无匹配的快讯</div>'; return; }
+      el.innerHTML=filt.map(function(t){
+        return '<div class="timeline-item"><div class="tl-time-col"><span class="tl-time">'+esc(val(t.time))+'</span><span class="tl-dot" style="background:'+HC[t.hotness]+'"></span><span class="tl-line"></span></div><div class="tl-body"><div class="tl-game-row"><span class="tl-game">'+esc(val(t.game))+'</span><span class="hotness-badge '+hc(t.hotness)+'">'+esc(val(t.hotness))+'</span></div><div class="tl-content">'+esc(val(t.content))+'</div><div class="tl-tags">'+((t.tags||[]).map(function(tg){ return '<span class="tl-tag">'+esc(tg)+'</span>'; }).join(''))+'</div><div style="display:flex;align-items:center;gap:8px;margin-top:6px"><button class="ai-btn" data-game="'+esc(val(t.game))+'" data-title="'+esc(val(t.content))+'"><i class="fa-solid fa-robot"></i> AI拆解</button><button class="bookmark-btn'+(isBm(t.id)?' bookmarked':'')+'" data-id="'+esc(val(t.id))+'" style="width:32px;height:32px;min-height:32px;font-size:14px"><i class="fa-solid fa-star"></i></button></div></div></div>';
+      }).join('');
+      bindBtns();
+      observeTL();
+    }
+
+    function renderComp(){
+      var el=document.getElementById('compTable'); if(!el)return;
+      var items=window.CONTENT_DATA.competitorIntel||[];
+      var ce=document.getElementById('compCount'); if(ce)ce.textContent=items.length+'家';
+      el.innerHTML='<thead><tr><th>厂商</th><th>最新版本</th><th>日期</th><th>关键动作</th><th>状态</th></tr></thead><tbody>'+items.map(function(c){ return '<tr><td><span class="comp-pub">'+esc(val(c.publisher))+'</span></td><td>'+esc(val(c.ver))+'</td><td>'+esc(val(c.date))+'</td><td>'+esc(val(c.move))+'</td><td><span class="hotness-badge" style="background:'+esc(val(c.sc)||'#7C5CFF')+'">'+esc(val(c.status))+'</span></td></tr>'; }).join('')+'</tbody>';
+    }
+
+    /* 时间线滚动动画 */
+    var tlObs=null;
+    function observeTL(){
+      if(tlObs)tlObs.disconnect();
+      if(typeof IntersectionObserver==='undefined')return;
+      tlObs=new IntersectionObserver(function(entries){
+        entries.forEach(function(e){
+          if(e.isIntersecting){
+            e.target.classList.add('timeline-visible');
+            var items=document.querySelectorAll('.timeline-item');
+            var idx=Array.prototype.indexOf.call(items,e.target);
+            if(idx<3){ setTimeout(function(){ e.target.classList.add('timeline-highlight'); setTimeout(function(){e.target.classList.remove('timeline-highlight');},1500); }, idx*200); }
+          }
+        });
+      },{threshold:0.25,rootMargin:'0px 0px -40px 0px'});
+      document.querySelectorAll('.timeline-item').forEach(function(it){ tlObs.observe(it); });
+    }
+
+    /* ==============================================================
+       9. 热点页渲染
+       ============================================================== */
+    function renderHotspotPage(){
+      // 玩家模式 — 卡片流
+      var pe=document.getElementById('hotspotPlayerStream'); if(!pe)return;
+      var allNews=window.CONTENT_DATA.newsTimeline||[];
+      var filt=activeCat==='all'?allNews:allNews.filter(function(n){return n.company===activeCat;});
+      pe.innerHTML=filt.map(function(n){
+        return '<div class="article-card"><div class="article-cover" style="background:'+esc(LOGO_FALLBACK[n.company]||'#7C5CFF')+'"><div class="logo-wrap">'+logoImg(n.company,n.game,'')+'</div></div><div class="article-body"><div class="article-title">'+esc(val(n.content))+'</div><div class="article-meta"><span>'+esc(val(n.game))+'</span><span>'+esc(val(n.time))+'</span><span class="hotness-badge '+hc(n.hotness)+'">'+esc(val(n.hotness))+'</span></div><div style="display:flex;align-items:center;gap:8px"><button class="ai-btn" data-game="'+esc(val(n.game))+'" data-title="'+esc(val(n.content))+'"><i class="fa-solid fa-robot"></i> AI深度拆解</button><button class="bookmark-btn'+(isBm(n.id)?' bookmarked':'')+'" data-id="'+esc(val(n.id))+'"><i class="fa-solid fa-star"></i></button></div></div></div>';
+      }).join('');
+      bindBtns();
+
+      // 专家模式 — 时间线
+      var te=document.getElementById('hotspotTimeline'); if(!te)return;
+      var tfilt=allNews.filter(filterNews);
+      var ce=document.getElementById('hotspotExpertCount'); if(ce)ce.textContent=tfilt.length+'条';
+      te.innerHTML=tfilt.map(function(t){
+        return '<div class="timeline-item"><div class="tl-time-col"><span class="tl-time">'+esc(val(t.time))+'</span><span class="tl-dot" style="background:'+HC[t.hotness]+'"></span><span class="tl-line"></span></div><div class="tl-body"><div class="tl-game-row"><span class="tl-game">'+esc(val(t.game))+'</span><span class="hotness-badge '+hc(t.hotness)+'">'+esc(val(t.hotness))+'</span></div><div class="tl-content">'+esc(val(t.content))+'</div><div class="tl-tags">'+((t.tags||[]).map(function(tg){ return '<span class="tl-tag">'+esc(tg)+'</span>'; }).join(''))+'</div></div></div>';
+      }).join('');
+      observeTL();
+    }
+
+    /* ==============================================================
+       10. 智库页渲染
+       ============================================================== */
+    function renderWiki(){
+      var reps=window.CONTENT_DATA.reports||[];
+      // 玩家模式 — 卡片网格
+      var wg=document.getElementById('wikiGrid'); if(wg){
+        wg.innerHTML=reps.map(function(r){
+          return '<div class="wiki-card"><span class="hotness-badge '+hc(r.hotness)+'" style="float:right">'+esc(val(r.hotness))+'</span><div class="wiki-game"><i class="fa-solid fa-gamepad"></i> '+esc(val(r.game))+'</div><div class="wiki-title">'+esc(getTitle(r))+'</div><div class="wiki-summary">'+esc(val(r.summary))+'</div><div class="wiki-meta"><span>'+esc(val(r.time))+'</span><span>'+esc(val(r.category))+'</span></div></div>';
+        }).join('');
+      }
+      // 专家模式 — 列表
+      var wl=document.getElementById('wikiList'), wc=document.getElementById('wikiExpertCount');
+      if(wl){ wl.innerHTML=reps.map(function(r){ return '<div class="wiki-list-item"><div class="wiki-list-body"><div class="wiki-list-title">'+esc(getTitle(r))+'</div><div class="fav-meta">'+esc(val(r.game))+' · '+esc(val(r.time))+' · '+esc(val(r.category))+' · <span class="hotness-badge '+hc(r.hotness)+'">'+esc(val(r.hotness))+'</span></div></div></div>'; }).join(''); }
+      if(wc)wc.textContent=reps.length+'篇';
+    }
+
+    /* ==============================================================
+       11. AI 分析页
+       ============================================================== */
+    function initAI(){
+      // 样例按钮
+      document.querySelectorAll('.ai-sample-btn').forEach(function(b){
+        b.addEventListener('click',function(){
+          var s=b.getAttribute('data-sample'), ss=AI_SAMPLES[s];
+          if(!ss)return;
+          var ta=document.getElementById('aiTextarea'), pe=document.getElementById('aiPrefill');
+          if(ta)ta.value=ss.text;
+          if(pe){ pe.style.display='block'; pe.textContent='📋 已加载样例：'+ss.title; }
+          var re=document.getElementById('aiResult'); if(re)re.style.display='none';
+        });
+      });
+      // 生成按钮
+      var gb=document.getElementById('aiGenerateBtn'); if(!gb)return;
+      gb.addEventListener('click',function(){
+        var ta=document.getElementById('aiTextarea'), re=document.getElementById('aiResult');
+        if(!ta||!re)return;
+        var content=ta.value.trim();
+        if(!content){ re.style.display='block'; re.innerHTML='<p style="color:#EF4444">⚠️ 请先输入内容或选择预置样例</p>'; return; }
+        // 模拟生成
+        re.style.display='block'; re.innerHTML='<p>⏳ 正在生成分析报告…</p>';
+        setTimeout(function(){
+          var checks=[];
+          document.querySelectorAll('#aiCheckboxes input:checked').forEach(function(cb){ checks.push(cb.parentElement.textContent.trim()); });
+          var dims=checks.length?checks.join('、'):'留存设计';
+          var word=content.length>500?'深度':'初步';
+          re.innerHTML='<h4><i class="fa-solid fa-file-lines"></i> 运营分析报告</h4>'
+            +'<p><strong>分析维度：</strong>'+dims+'</p>'
+            +'<p><strong>分析结论：</strong></p>'
+            +'<p>基于输入内容的'+word+'分析，该版本运营策略呈现以下特征：</p>'
+            +'<p style="margin-top:8px">1. <strong>版本节奏</strong>：版本上线前7天预热期社群互动量环比增长187%，表明预热策略有效激活了核心用户群。</p>'
+            +'<p>2. <strong>商业化结构</strong>：限时卡池+累充回馈+限定礼包的三层结构实现了用户分层覆盖，首日付费转化率预估高于上版本15%。</p>'
+            +'<p>3. <strong>社交裂变</strong>：组队任务与朋友圈分享机制形成自传播闭环，裂变渠道贡献新增用户占比有望突破30%。</p>'
+            +'<p>4. <strong>风险提示</strong>：需关注社区舆情的两极分化趋势，建议准备分层补偿预案。</p>'
+            +'<p style="margin-top:12px;color:var(--text-muted);font-size:var(--text-xs)">📌 此为演示版本预置样例结果，展示AI分析报告的结构化排版效果。完整功能需接入AI API。</p>';
+        },1800);
+      });
+    }
+
+    /* ==============================================================
+       12. 初始化
+       ============================================================== */
+    function refreshAll(){
+      renderHot(); renderArticles(); renderBreaking(); renderTimeline(); renderHotspotPage();
+    }
+
+    function init(){
+      loadBm();
+      var sm=loadMode(); setBody(sm); updateModeUI(sm);
+
+      // 玩家模式
+      renderBanner(); renderCats(); renderHot(); renderArticles(); renderPubs();
+      // 专家模式
+      renderExpBar(); renderBreaking(); renderTimeline(); renderComp();
+      // 其他页
+      renderHotspotPage(); renderWiki();
+      // 导航
+      initBottomNav();
+      // AI
+      initAI();
+      // 模式切换
+      var btn=document.getElementById('modeToggleBtn'); if(btn)btn.addEventListener('click',toggleMode);
+      // 窗口大小变化时更新滑块
+      window.addEventListener('resize',function(){ var ap=document.querySelector('.nav-tab.active'); if(ap)updateNavSlider(ap.getAttribute('data-page')); });
+    }
+
+    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init); else init();
+  })();
+  </script>
+</body>
+</html>

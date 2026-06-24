@@ -1,0 +1,6 @@
+.DS_Store
+mian
+mian.dSYM
+mian.cpp
+analysis.py
+*.pyc
