@@ -499,6 +499,76 @@
     }
     .about-modal .about-close:hover { border-color: var(--brand); color: var(--brand); }
 
+    /* 卡片详情弹窗（通用） */
+    .detail-overlay {
+      display: none; position: fixed; top:0; left:0; right:0; bottom:0;
+      background: rgba(0,0,0,0.52); z-index: 300;
+      align-items: center; justify-content: center;
+      padding: var(--space-md);
+      opacity: 0;
+      transition: opacity 0.28s ease;
+    }
+    .detail-overlay.show {
+      display: flex;
+      opacity: 1;
+    }
+
+    .detail-modal {
+      background: var(--bg-card); border-radius: var(--radius-xl);
+      max-width: 600px; width: 100%; max-height: 85vh;
+      display: flex; flex-direction: column;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.18);
+      border: var(--card-border);
+      transition: border-radius var(--transition-speed) ease, background var(--transition-speed) ease;
+      transform: translateY(12px);
+      animation: detailIn 0.28s ease forwards;
+    }
+    @keyframes detailIn {
+      to { transform: translateY(0); }
+    }
+
+    .detail-header {
+      display: flex; align-items: flex-start; gap: var(--space-md);
+      padding: var(--space-lg) var(--space-lg) var(--space-md) var(--space-lg);
+      border-bottom: 1px solid var(--border);
+      transition: padding var(--transition-speed) ease;
+    }
+    .detail-header-left { display: flex; align-items: center; gap: var(--space-sm); flex:1; min-width:0; }
+    .detail-logo { width: 40px; height: 40px; border-radius: var(--radius-md); overflow: hidden; background: #f5f5f7; flex-shrink:0; display: flex; align-items: center; justify-content: center; transition: border-radius var(--transition-speed) ease; }
+    .detail-logo img, .detail-logo .logo-fallback { width: 100%; height: 100%; object-fit: contain; }
+    .detail-game { font-size: var(--text-sm); font-weight: 700; color: var(--text-primary); }
+    .detail-meta-row { display: flex; align-items: center; gap: var(--space-sm); margin-top: 2px; font-size: var(--text-xs); color: var(--text-muted); }
+    .detail-close-btn {
+      width: 32px; height: 32px; min-height: 32px; border-radius: var(--radius-full);
+      border: 1.5px solid var(--border); background: var(--bg-card);
+      font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      color: var(--text-muted); flex-shrink: 0; transition: all 0.2s ease;
+    }
+    .detail-close-btn:hover { border-color: #EF4444; color: #EF4444; background: #FEF2F2; }
+
+    .detail-body {
+      flex: 1; overflow-y: auto; padding: var(--space-md) var(--space-lg);
+      transition: padding var(--transition-speed) ease;
+    }
+    .detail-title { font-size: var(--text-lg); font-weight: 800; color: var(--text-primary); line-height: 1.45; margin-bottom: var(--space-sm); }
+    .detail-tags-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: var(--space-md); }
+    .detail-tag { font-size: 10px; padding: 2px 8px; border-radius: var(--radius-sm); background: #F5F5F5; color: var(--text-secondary); border: 1px solid var(--border); }
+    .detail-content { font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.85; white-space: pre-wrap; word-break: break-word; }
+
+    .detail-footer {
+      display: flex; align-items: center; gap: var(--space-sm);
+      padding: var(--space-md) var(--space-lg) var(--space-lg) var(--space-lg);
+      border-top: 1px solid var(--border);
+      transition: padding var(--transition-speed) ease;
+    }
+
+    /* 响应式 */
+    @media (max-width: 480px) {
+      .detail-header { padding: var(--space-md) var(--space-md) var(--space-sm) var(--space-md); }
+      .detail-body { padding: var(--space-sm) var(--space-md); }
+      .detail-footer { padding: var(--space-sm) var(--space-md) var(--space-md) var(--space-md); }
+    }
+
     /* ================================================================
        状态栏 & 页脚
        ================================================================ */
@@ -647,6 +717,34 @@
       <span class="status-mode" id="statusMode">玩家模式</span>
     </div>
   </main>
+
+  <!-- ============ 内容详情弹窗 ============ -->
+  <div class="detail-overlay" id="detailOverlay" onclick="if(event.target===this)closeDetail()">
+    <div class="detail-modal" id="detailModal">
+      <div class="detail-header">
+        <div class="detail-header-left">
+          <div class="detail-logo" id="detailLogo"><!-- JS --></div>
+          <div>
+            <div class="detail-game" id="detailGame"></div>
+            <div class="detail-meta-row">
+              <span id="detailHotness"></span>
+              <span id="detailTime"></span>
+            </div>
+          </div>
+        </div>
+        <button class="detail-close-btn" onclick="closeDetail()" title="关闭">✕</button>
+      </div>
+      <div class="detail-body">
+        <div class="detail-title" id="detailTitle"></div>
+        <div class="detail-tags-row" id="detailTags"></div>
+        <div class="detail-content" id="detailContent"></div>
+      </div>
+      <div class="detail-footer">
+        <button class="ai-btn" id="detailAI">🤖 AI深度拆解</button>
+        <button class="bookmark-btn" id="detailBM" title="收藏">☆</button>
+      </div>
+    </div>
+  </div>
 
   <!-- ============ 关于游哒 弹窗 ============ -->
   <div class="about-modal-overlay" id="aboutModal" onclick="if(event.target===this)this.style.display='none'">
@@ -886,6 +984,103 @@
     }
 
     /* ==============================================================
+       2.5 卡片详情弹窗 — 跨模式共用
+       ============================================================== */
+
+    // 通过 ID 在所有数据源中查找任意一条内容
+    function findItemById(id) {
+      var d = window.CONTENT_DATA;
+      var srcs = [d.hotTopics, d.reports, d.newsTimeline, d.breakingEvents];
+      for (var i = 0; i < srcs.length; i++) {
+        var arr = srcs[i];
+        if (!arr) continue;
+        for (var j = 0; j < arr.length; j++) {
+          if (arr[j].id === id) return arr[j];
+        }
+      }
+      return null;
+    }
+
+    function openDetail(id) {
+      var item = findItemById(id);
+      if (!item) return;
+
+      var colors = window.CONTENT_DATA.hotnessColors || HC;
+      var logoKey = item.logoKey || item.company || '';
+      var time = val(item.time || '');
+      var game = val(item.game || '');
+      var hotness = val(item.hotness || 'B');
+      var title = getTitle(item);
+      // 为 hotTopics 生成完整正文
+      var content = val(item.content || item.summary || '');
+      if (!content && item.id && item.id.indexOf('ht') === 0) {
+        // 今日热点卡片：根据标题扩展为完整拆解内容
+        var ext = {
+          ht1: '本次 5.8 海岛大版本采用了「限时地图」+「角色邀约」双驱动设计，是原神暑期运营的核心亮点之一。\n\n一、限时地图设计\n千星群岛作为独立限时地图，内置了 12 个叙事锚点，每个锚点对应一段剧情推进与探索奖励。玩家在探索过程中逐步解锁岛屿区域，形成了「探索→叙事→奖励」的正向循环。\n\n二、角色邀约机制\n版本同步上线新五星角色的邀约任务，通过角色专属剧情线引导玩家深度体验新地图内容。邀约任务的完成率与地图探索率高度相关，形成了「角色吸引力 → 地图留存 → 付费转化」的漏斗。\n\n三、商业化埋点\n限时卡池与地图进度绑定：地图探索到达特定阶段解锁卡池抽取加成，这一机制有效提升了付费转化率。同时，地图内嵌的限定商店与限时礼包构成第二层消费场景。\n\n四、运营数据表现\n上线首日即登顶 16 国 App Store 畅销榜，限时卡池抽取率达历史峰值 23%，首日流水预估突破 2.8 亿元。社区 UGC 内容产出量在 48 小时内超过 3 万条。\n\n五、总结\n5.8 版本的双驱动设计为后续大版本的内容+商业化协同提供了可复用的模板，尤其是「地图探索解锁卡池加成」的机制设计值得持续关注。',
+          ht2: '鸣潮 1.4「暗涌」版本的运营节奏可谓今年暑期手游运营的经典案例，从预热到爆发仅用了 48 小时，以下是完整的节奏复盘。\n\n一、预热阶段（上线前 7 天）\n库洛通过悬念预告页 + 社区解谜活动双线并行，逐步释放版本核心内容信息。解谜第一弹在 B 站与 TapTap 同步上线，首日参与用户超过 60 万。\n\n二、爆发阶段（上线 48 小时）\n版本上线前 2 小时，官方放出最终 PV，B 站播放量 4 小时突破 200 万。上线首日即因流量过大紧急加开服务器，TapTap 热搜飙至第 1 位。\n\n三、社区运营亮点\n社区解谜第二弹谜题解密率达 72%，运营团队实时追加隐藏奖励，进一步拉高话题讨论度。社区二创活动投稿量突破 1.2 万件。\n\n四、挑战与反思\nBOSS 挑战活动「深渊裂隙」首周通关率仅 8%，运营紧急下调数值难度——这说明高难内容在获取高热度时也需要关注大众玩家的参与门槛。\n\n五、总结\n1.4 版本的预热→爆发→社区发酵的三段式运营节奏值得其他二次元产品借鉴。',
+          ht3: '腾讯在暑期档再次迭代全民电竞玩法，社交裂变 + 组队奖励的双轮驱动让 2.0 版本首日参与用户突破 1200 万，以下是深度拆解。\n\n一、社交裂变设计\n微信好友组队裂变是本次全民电竞 2.0 最核心的增长引擎。邀请 3 人组队额外获电竞积分，朋友圈分享战绩得额外抽奖机会——这两个机制让每个参与用户都成为了传播节点。数据显示，裂变渠道贡献新用户占比达 35%。\n\n二、组队任务系统\n每日/周任务奖励升级，配合「五黑上分」等组队任务，日均完成组队数突破 800 万。任务奖励与电竞积分商城联动，限时兑换传说皮肤碎片进一步刺激活跃度。\n\n三、商业化联动\n赛季限定皮肤「龙魂战甲」预售开启 2 小时销售额破 1 亿，充分验证了电竞主题皮肤的付费潜力。\n\n四、赛事体系\n全国大赛线上赛区开放，报名人数破 300 万创历届新高。电竞观赛入口嵌入主界面的设计也为暑期 DAU 环比提升 19% 做出了贡献。\n\n五、总结\n全民电竞 2.0 的核心成功在于用社交裂变解决了用户增长、用赛事体系解决了用户留存、用限定商业化解决了付费转化——三者形成了完整的运营飞轮。'
+        };
+        content = ext[id] || content;
+      }
+      var tags = item.tags || [];
+      var aiTitle = item.title || item.content || title;
+
+      // 填充头部
+      document.getElementById('detailLogo').innerHTML = logoImg(logoKey, game, '');
+      document.getElementById('detailGame').textContent = game;
+      document.getElementById('detailHotness').innerHTML = '<span class="hotness-badge ' + hc(hotness) + '" style="background:' + (colors[hotness] || '#6B7280') + '">' + esc(hotness) + '</span>';
+      document.getElementById('detailTime').textContent = time;
+      document.getElementById('detailTitle').textContent = title;
+      document.getElementById('detailTags').innerHTML = tags.length ? tags.map(function(t) { return '<span class="detail-tag">' + esc(t) + '</span>'; }).join('') : '';
+      document.getElementById('detailContent').textContent = content || '暂无详细内容，请查看完整拆解报告。';
+
+      // 底部按钮 — AI 深度拆解
+      var aiBtn = document.getElementById('detailAI');
+      // 先把旧监听清掉，重新绑定
+      var newAi = aiBtn.cloneNode(true);
+      aiBtn.parentNode.replaceChild(newAi, aiBtn);
+      newAi.addEventListener('click', function(e) {
+        e.stopPropagation();
+        jumpAI(game, aiTitle);
+        closeDetail();
+      });
+
+      // 底部按钮 — 收藏
+      var bmBtn = document.getElementById('detailBM');
+      var newBm = bmBtn.cloneNode(true);
+      bmBtn.parentNode.replaceChild(newBm, bmBtn);
+      newBm.className = 'bookmark-btn' + (isBm(id) ? ' bookmarked' : '');
+      newBm.innerHTML = isBm(id) ? '<i class="fa-solid fa-star"></i>' : '<i class="fa-regular fa-star"></i>';
+      newBm.addEventListener('click', function(e) {
+        e.stopPropagation();
+        toggleBm(id);
+        // 切换图标 + 样式
+        newBm.className = 'bookmark-btn' + (isBm(id) ? ' bookmarked' : '');
+        newBm.innerHTML = isBm(id) ? '<i class="fa-solid fa-star"></i>' : '<i class="fa-regular fa-star"></i>';
+      });
+
+      // 绑定通用按钮
+      bindBtns();
+
+      // 展示弹窗 + 锁 body 滚动
+      var ov = document.getElementById('detailOverlay');
+      ov.classList.add('show');
+      ov.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeDetail() {
+      var ov = document.getElementById('detailOverlay');
+      ov.classList.remove('show');
+      ov.style.display = 'none';
+      document.body.style.overflow = '';
+    }
+
+    // 把 closeDetail 暴露到全局作用域，供 onclick 内联调用
+    window.closeDetail = closeDetail;
+    window.openDetail = openDetail;
+
+    /* ==============================================================
        3. 模式管理
        ============================================================== */
     var SK='app-mode-preference', MP='mode-player', ME='mode-expert';
@@ -1024,7 +1219,7 @@
       var filt=activeCat==='all'?items:items.filter(function(h){return h.category===activeCat;});
       if(!filt.length){ el.innerHTML='<div class="empty-state">暂无该分类的热点</div>'; return; }
       el.innerHTML=filt.map(function(h){
-        return '<div class="hot-card"><div class="hot-cover" style="background:'+esc(val(h.coverColor))+'"><span class="hot-cover-label">'+esc(val(h.game))+'</span></div><div class="hot-body"><div class="hot-meta"><span class="hot-game">'+esc(val(h.game))+'</span><span class="hotness-badge '+hc(h.hotness)+'">'+esc(val(h.hotness))+'</span></div><div class="hot-title">'+esc(val(h.title))+'</div><button class="ai-btn" data-game="'+esc(val(h.game))+'" data-title="'+esc(val(h.title))+'"><i class="fa-solid fa-robot"></i> AI深度拆解</button> <button class="bookmark-btn'+(isBm(h.id)?' bookmarked':'')+'" data-id="'+esc(val(h.id))+'"><i class="fa-solid fa-star"></i></button></div></div>';
+        return '<div class="hot-card" data-detail-id="'+esc(val(h.id))+'"><div class="hot-cover" style="background:'+esc(val(h.coverColor))+'"><span class="hot-cover-label">'+esc(val(h.game))+'</span></div><div class="hot-body"><div class="hot-meta"><span class="hot-game">'+esc(val(h.game))+'</span><span class="hotness-badge '+hc(h.hotness)+'">'+esc(val(h.hotness))+'</span></div><div class="hot-title">'+esc(val(h.title))+'</div><button class="ai-btn" data-game="'+esc(val(h.game))+'" data-title="'+esc(val(h.title))+'"><i class="fa-solid fa-robot"></i> AI深度拆解</button> <button class="bookmark-btn'+(isBm(h.id)?' bookmarked':'')+'" data-id="'+esc(val(h.id))+'"><i class="fa-solid fa-star"></i></button></div></div>';
       }).join('');
       bindBtns();
     }
@@ -1035,7 +1230,7 @@
       var filt=activeCat==='all'?items:items.filter(function(a){return a.company===activeCat;});
       if(!filt.length){ el.innerHTML='<div class="empty-state">暂无该分类的文章</div>'; return; }
       el.innerHTML=filt.map(function(a){
-        return '<div class="article-card"><div class="article-cover" style="background:'+esc(LOGO_FALLBACK[a.logoKey]||'#7C5CFF')+'"><div class="logo-wrap">'+logoImg(a.logoKey,a.game,'')+'</div></div><div class="article-body"><div class="article-title">'+esc(getTitle(a))+'</div><div class="article-summary">'+esc(val(a.summary))+'</div><div class="article-meta"><span>'+esc(val(a.game))+'</span><span>'+esc(val(a.time))+'</span><span class="hotness-badge '+hc(a.hotness)+'">'+esc(val(a.hotness))+'</span></div><div style="display:flex;align-items:center;gap:8px"><button class="ai-btn" data-game="'+esc(val(a.game))+'" data-title="'+esc(getTitle(a))+'"><i class="fa-solid fa-robot"></i> AI深度拆解</button><button class="bookmark-btn'+(isBm(a.id)?' bookmarked':'')+'" data-id="'+esc(val(a.id))+'"><i class="fa-solid fa-star"></i></button></div></div></div>';
+        return '<div class="article-card" data-detail-id="'+esc(val(a.id))+'"><div class="article-cover" style="background:'+esc(LOGO_FALLBACK[a.logoKey]||'#7C5CFF')+'"><div class="logo-wrap">'+logoImg(a.logoKey,a.game,'')+'</div></div><div class="article-body"><div class="article-title">'+esc(getTitle(a))+'</div><div class="article-summary">'+esc(val(a.summary))+'</div><div class="article-meta"><span>'+esc(val(a.game))+'</span><span>'+esc(val(a.time))+'</span><span class="hotness-badge '+hc(a.hotness)+'">'+esc(val(a.hotness))+'</span></div><div style="display:flex;align-items:center;gap:8px"><button class="ai-btn" data-game="'+esc(val(a.game))+'" data-title="'+esc(getTitle(a))+'"><i class="fa-solid fa-robot"></i> AI深度拆解</button><button class="bookmark-btn'+(isBm(a.id)?' bookmarked':'')+'" data-id="'+esc(val(a.id))+'"><i class="fa-solid fa-star"></i></button></div></div></div>';
       }).join('');
       bindBtns();
     }
@@ -1084,7 +1279,7 @@
       var ce=document.getElementById('breakingCount'); if(ce)ce.textContent=filt.length+'条';
       if(!filt.length){ el.innerHTML='<div class="empty-state">暂无匹配的重要事件</div>'; return; }
       el.innerHTML=filt.map(function(e){
-        return '<div class="breaking-item"><span class="breaking-time">'+esc(val(e.time))+'</span><span class="breaking-dot" style="background:'+HC[e.hotness]+';box-shadow:0 0 0 3px '+HC[e.hotness]+'1A"></span><div class="breaking-body"><div class="breaking-game">'+esc(val(e.game))+'</div><div class="breaking-title">'+esc(val(e.title))+'</div></div><span class="hotness-badge '+hc(e.hotness)+'" style="margin-top:4px">'+esc(val(e.hotness))+'</span><button class="ai-btn" style="margin-left:8px;flex-shrink:0" data-game="'+esc(val(e.game))+'" data-title="'+esc(val(e.title))+'"><i class="fa-solid fa-robot"></i> AI拆解</button><button class="bookmark-btn'+(isBm(e.id)?' bookmarked':'')+'" data-id="'+esc(val(e.id))+'" style="margin-left:4px"><i class="fa-solid fa-star"></i></button></div>';
+        return '<div class="breaking-item" data-detail-id="'+esc(val(e.id))+'"><span class="breaking-time">'+esc(val(e.time))+'</span><span class="breaking-dot" style="background:'+HC[e.hotness]+';box-shadow:0 0 0 3px '+HC[e.hotness]+'1A"></span><div class="breaking-body"><div class="breaking-game">'+esc(val(e.game))+'</div><div class="breaking-title">'+esc(val(e.title))+'</div></div><span class="hotness-badge '+hc(e.hotness)+'" style="margin-top:4px">'+esc(val(e.hotness))+'</span><button class="ai-btn" style="margin-left:8px;flex-shrink:0" data-game="'+esc(val(e.game))+'" data-title="'+esc(val(e.title))+'"><i class="fa-solid fa-robot"></i> AI拆解</button><button class="bookmark-btn'+(isBm(e.id)?' bookmarked':'')+'" data-id="'+esc(val(e.id))+'" style="margin-left:4px"><i class="fa-solid fa-star"></i></button></div>';
       }).join('');
       bindBtns();
     }
@@ -1096,7 +1291,7 @@
       var ce=document.getElementById('timelineCount'); if(ce)ce.textContent=filt.length+'条';
       if(!filt.length){ el.innerHTML='<div class="empty-state">暂无匹配的快讯</div>'; return; }
       el.innerHTML=filt.map(function(t){
-        return '<div class="timeline-item"><div class="tl-time-col"><span class="tl-time">'+esc(val(t.time))+'</span><span class="tl-dot" style="background:'+HC[t.hotness]+'"></span><span class="tl-line"></span></div><div class="tl-body"><div class="tl-game-row"><span class="tl-game">'+esc(val(t.game))+'</span><span class="hotness-badge '+hc(t.hotness)+'">'+esc(val(t.hotness))+'</span></div><div class="tl-content">'+esc(val(t.content))+'</div><div class="tl-tags">'+((t.tags||[]).map(function(tg){ return '<span class="tl-tag">'+esc(tg)+'</span>'; }).join(''))+'</div><div style="display:flex;align-items:center;gap:8px;margin-top:6px"><button class="ai-btn" data-game="'+esc(val(t.game))+'" data-title="'+esc(val(t.content))+'"><i class="fa-solid fa-robot"></i> AI拆解</button><button class="bookmark-btn'+(isBm(t.id)?' bookmarked':'')+'" data-id="'+esc(val(t.id))+'" style="width:32px;height:32px;min-height:32px;font-size:14px"><i class="fa-solid fa-star"></i></button></div></div></div>';
+        return '<div class="timeline-item" data-detail-id="'+esc(val(t.id))+'"><div class="tl-time-col"><span class="tl-time">'+esc(val(t.time))+'</span><span class="tl-dot" style="background:'+HC[t.hotness]+'"></span><span class="tl-line"></span></div><div class="tl-body"><div class="tl-game-row"><span class="tl-game">'+esc(val(t.game))+'</span><span class="hotness-badge '+hc(t.hotness)+'">'+esc(val(t.hotness))+'</span></div><div class="tl-content">'+esc(val(t.content))+'</div><div class="tl-tags">'+((t.tags||[]).map(function(tg){ return '<span class="tl-tag">'+esc(tg)+'</span>'; }).join(''))+'</div><div style="display:flex;align-items:center;gap:8px;margin-top:6px"><button class="ai-btn" data-game="'+esc(val(t.game))+'" data-title="'+esc(val(t.content))+'"><i class="fa-solid fa-robot"></i> AI拆解</button><button class="bookmark-btn'+(isBm(t.id)?' bookmarked':'')+'" data-id="'+esc(val(t.id))+'" style="width:32px;height:32px;min-height:32px;font-size:14px"><i class="fa-solid fa-star"></i></button></div></div></div>';
       }).join('');
       bindBtns();
       observeTL();
@@ -1136,7 +1331,7 @@
       var allNews=window.CONTENT_DATA.newsTimeline||[];
       var filt=activeCat==='all'?allNews:allNews.filter(function(n){return n.company===activeCat;});
       pe.innerHTML=filt.map(function(n){
-        return '<div class="article-card"><div class="article-cover" style="background:'+esc(LOGO_FALLBACK[n.company]||'#7C5CFF')+'"><div class="logo-wrap">'+logoImg(n.company,n.game,'')+'</div></div><div class="article-body"><div class="article-title">'+esc(val(n.content))+'</div><div class="article-meta"><span>'+esc(val(n.game))+'</span><span>'+esc(val(n.time))+'</span><span class="hotness-badge '+hc(n.hotness)+'">'+esc(val(n.hotness))+'</span></div><div style="display:flex;align-items:center;gap:8px"><button class="ai-btn" data-game="'+esc(val(n.game))+'" data-title="'+esc(val(n.content))+'"><i class="fa-solid fa-robot"></i> AI深度拆解</button><button class="bookmark-btn'+(isBm(n.id)?' bookmarked':'')+'" data-id="'+esc(val(n.id))+'"><i class="fa-solid fa-star"></i></button></div></div></div>';
+        return '<div class="article-card" data-detail-id="'+esc(val(n.id))+'"><div class="article-cover" style="background:'+esc(LOGO_FALLBACK[n.company]||'#7C5CFF')+'"><div class="logo-wrap">'+logoImg(n.company,n.game,'')+'</div></div><div class="article-body"><div class="article-title">'+esc(val(n.content))+'</div><div class="article-meta"><span>'+esc(val(n.game))+'</span><span>'+esc(val(n.time))+'</span><span class="hotness-badge '+hc(n.hotness)+'">'+esc(val(n.hotness))+'</span></div><div style="display:flex;align-items:center;gap:8px"><button class="ai-btn" data-game="'+esc(val(n.game))+'" data-title="'+esc(val(n.content))+'"><i class="fa-solid fa-robot"></i> AI深度拆解</button><button class="bookmark-btn'+(isBm(n.id)?' bookmarked':'')+'" data-id="'+esc(val(n.id))+'"><i class="fa-solid fa-star"></i></button></div></div></div>';
       }).join('');
       bindBtns();
 
@@ -1145,7 +1340,7 @@
       var tfilt=allNews.filter(filterNews);
       var ce=document.getElementById('hotspotExpertCount'); if(ce)ce.textContent=tfilt.length+'条';
       te.innerHTML=tfilt.map(function(t){
-        return '<div class="timeline-item"><div class="tl-time-col"><span class="tl-time">'+esc(val(t.time))+'</span><span class="tl-dot" style="background:'+HC[t.hotness]+'"></span><span class="tl-line"></span></div><div class="tl-body"><div class="tl-game-row"><span class="tl-game">'+esc(val(t.game))+'</span><span class="hotness-badge '+hc(t.hotness)+'">'+esc(val(t.hotness))+'</span></div><div class="tl-content">'+esc(val(t.content))+'</div><div class="tl-tags">'+((t.tags||[]).map(function(tg){ return '<span class="tl-tag">'+esc(tg)+'</span>'; }).join(''))+'</div></div></div>';
+        return '<div class="timeline-item" data-detail-id="'+esc(val(t.id))+'"><div class="tl-time-col"><span class="tl-time">'+esc(val(t.time))+'</span><span class="tl-dot" style="background:'+HC[t.hotness]+'"></span><span class="tl-line"></span></div><div class="tl-body"><div class="tl-game-row"><span class="tl-game">'+esc(val(t.game))+'</span><span class="hotness-badge '+hc(t.hotness)+'">'+esc(val(t.hotness))+'</span></div><div class="tl-content">'+esc(val(t.content))+'</div><div class="tl-tags">'+((t.tags||[]).map(function(tg){ return '<span class="tl-tag">'+esc(tg)+'</span>'; }).join(''))+'</div></div></div>';
       }).join('');
       observeTL();
     }
@@ -1158,12 +1353,12 @@
       // 玩家模式 — 卡片网格
       var wg=document.getElementById('wikiGrid'); if(wg){
         wg.innerHTML=reps.map(function(r){
-          return '<div class="wiki-card"><span class="hotness-badge '+hc(r.hotness)+'" style="float:right">'+esc(val(r.hotness))+'</span><div class="wiki-game"><i class="fa-solid fa-gamepad"></i> '+esc(val(r.game))+'</div><div class="wiki-title">'+esc(getTitle(r))+'</div><div class="wiki-summary">'+esc(val(r.summary))+'</div><div class="wiki-meta"><span>'+esc(val(r.time))+'</span><span>'+esc(val(r.category))+'</span></div></div>';
+          return '<div class="wiki-card" data-detail-id="'+esc(val(r.id))+'"><span class="hotness-badge '+hc(r.hotness)+'" style="float:right">'+esc(val(r.hotness))+'</span><div class="wiki-game"><i class="fa-solid fa-gamepad"></i> '+esc(val(r.game))+'</div><div class="wiki-title">'+esc(getTitle(r))+'</div><div class="wiki-summary">'+esc(val(r.summary))+'</div><div class="wiki-meta"><span>'+esc(val(r.time))+'</span><span>'+esc(val(r.category))+'</span></div></div>';
         }).join('');
       }
       // 专家模式 — 列表
       var wl=document.getElementById('wikiList'), wc=document.getElementById('wikiExpertCount');
-      if(wl){ wl.innerHTML=reps.map(function(r){ return '<div class="wiki-list-item"><div class="wiki-list-body"><div class="wiki-list-title">'+esc(getTitle(r))+'</div><div class="fav-meta">'+esc(val(r.game))+' · '+esc(val(r.time))+' · '+esc(val(r.category))+' · <span class="hotness-badge '+hc(r.hotness)+'">'+esc(val(r.hotness))+'</span></div></div></div>'; }).join(''); }
+      if(wl){ wl.innerHTML=reps.map(function(r){ return '<div class="wiki-list-item" data-detail-id="'+esc(val(r.id))+'"><div class="wiki-list-body"><div class="wiki-list-title">'+esc(getTitle(r))+'</div><div class="fav-meta">'+esc(val(r.game))+' · '+esc(val(r.time))+' · '+esc(val(r.category))+' · <span class="hotness-badge '+hc(r.hotness)+'">'+esc(val(r.hotness))+'</span></div></div></div>'; }).join(''); }
       if(wc)wc.textContent=reps.length+'篇';
     }
 
@@ -1234,6 +1429,17 @@
       var btn=document.getElementById('modeToggleBtn'); if(btn)btn.addEventListener('click',toggleMode);
       // 窗口大小变化时更新滑块
       window.addEventListener('resize',function(){ var ap=document.querySelector('.nav-tab.active'); if(ap)updateNavSlider(ap.getAttribute('data-page')); });
+      // ESC 关闭详情弹窗
+      document.addEventListener('keydown',function(e){ if(e.key==='Escape')closeDetail(); });
+      // 卡片点击事件委托（全局级别，覆盖所有动态渲染的卡片）
+      document.addEventListener('click',function(e){
+        var card = e.target.closest('[data-detail-id]');
+        if (card && !e.target.closest('button') && !e.target.closest('.bookmark-btn') && !e.target.closest('.ai-btn')) {
+          e.stopPropagation();
+          var id = card.getAttribute('data-detail-id');
+          if (id) openDetail(id);
+        }
+      });
     }
 
     if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init); else init();
