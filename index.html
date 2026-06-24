@@ -983,6 +983,12 @@
              '<div class="logo-fallback ' + cls + '" style="background:' + fb + ';display:none">' + esc(letter) + '</div>';
     }
 
+    // 公司中文名 → LOGOS key 映射
+    function mapCompanyToKey(name) {
+      var map = { '米哈游':'mihoyo', '腾讯游戏':'tencent', '腾讯':'tencent', '库洛游戏':'kuro', '库洛':'kuro', '网易游戏':'netease', '网易':'netease', '鹰角网络':'hypergryph', '鹰角':'hypergryph', '莉莉丝':'lilith' };
+      return map[name] || '';
+    }
+
     /* ==============================================================
        2.5 卡片详情弹窗 — 跨模式共用
        ============================================================== */
@@ -990,7 +996,7 @@
     // 通过 ID 在所有数据源中查找任意一条内容
     function findItemById(id) {
       var d = window.CONTENT_DATA;
-      var srcs = [d.hotTopics, d.reports, d.newsTimeline, d.breakingEvents];
+      var srcs = [d.hotTopics, d.reports, d.newsTimeline, d.breakingEvents, d.publishers, d.competitorIntel];
       for (var i = 0; i < srcs.length; i++) {
         var arr = srcs[i];
         if (!arr) continue;
@@ -1005,22 +1011,42 @@
       var item = findItemById(id);
       if (!item) return;
 
+      // 判断是否为厂商/竞品条目
+      var isPublisher = (item.name && item.count && !item.game);
+      var isCompetitor = (item.publisher && item.ver);
+
       var colors = window.CONTENT_DATA.hotnessColors || HC;
-      var logoKey = item.logoKey || item.company || '';
-      var time = val(item.time || '');
-      var game = val(item.game || '');
+      var logoKey = isPublisher ? (item.id || '') : (isCompetitor ? mapCompanyToKey(item.publisher) : (item.logoKey || item.company || ''));
+      var time = val(item.time || item.date || (isCompetitor ? item.date : ''));
+      var game = val(isPublisher ? item.name : (isCompetitor ? item.publisher : item.game || ''));
       var hotness = val(item.hotness || 'B');
-      var title = getTitle(item);
-      // 为 hotTopics 生成完整正文
-      var content = val(item.content || item.summary || '');
-      if (!content && item.id && item.id.indexOf('ht') === 0) {
-        // 今日热点卡片：根据标题扩展为完整拆解内容
-        var ext = {
-          ht1: '本次 5.8 海岛大版本采用了「限时地图」+「角色邀约」双驱动设计，是原神暑期运营的核心亮点之一。\n\n一、限时地图设计\n千星群岛作为独立限时地图，内置了 12 个叙事锚点，每个锚点对应一段剧情推进与探索奖励。玩家在探索过程中逐步解锁岛屿区域，形成了「探索→叙事→奖励」的正向循环。\n\n二、角色邀约机制\n版本同步上线新五星角色的邀约任务，通过角色专属剧情线引导玩家深度体验新地图内容。邀约任务的完成率与地图探索率高度相关，形成了「角色吸引力 → 地图留存 → 付费转化」的漏斗。\n\n三、商业化埋点\n限时卡池与地图进度绑定：地图探索到达特定阶段解锁卡池抽取加成，这一机制有效提升了付费转化率。同时，地图内嵌的限定商店与限时礼包构成第二层消费场景。\n\n四、运营数据表现\n上线首日即登顶 16 国 App Store 畅销榜，限时卡池抽取率达历史峰值 23%，首日流水预估突破 2.8 亿元。社区 UGC 内容产出量在 48 小时内超过 3 万条。\n\n五、总结\n5.8 版本的双驱动设计为后续大版本的内容+商业化协同提供了可复用的模板，尤其是「地图探索解锁卡池加成」的机制设计值得持续关注。',
-          ht2: '鸣潮 1.4「暗涌」版本的运营节奏可谓今年暑期手游运营的经典案例，从预热到爆发仅用了 48 小时，以下是完整的节奏复盘。\n\n一、预热阶段（上线前 7 天）\n库洛通过悬念预告页 + 社区解谜活动双线并行，逐步释放版本核心内容信息。解谜第一弹在 B 站与 TapTap 同步上线，首日参与用户超过 60 万。\n\n二、爆发阶段（上线 48 小时）\n版本上线前 2 小时，官方放出最终 PV，B 站播放量 4 小时突破 200 万。上线首日即因流量过大紧急加开服务器，TapTap 热搜飙至第 1 位。\n\n三、社区运营亮点\n社区解谜第二弹谜题解密率达 72%，运营团队实时追加隐藏奖励，进一步拉高话题讨论度。社区二创活动投稿量突破 1.2 万件。\n\n四、挑战与反思\nBOSS 挑战活动「深渊裂隙」首周通关率仅 8%，运营紧急下调数值难度——这说明高难内容在获取高热度时也需要关注大众玩家的参与门槛。\n\n五、总结\n1.4 版本的预热→爆发→社区发酵的三段式运营节奏值得其他二次元产品借鉴。',
-          ht3: '腾讯在暑期档再次迭代全民电竞玩法，社交裂变 + 组队奖励的双轮驱动让 2.0 版本首日参与用户突破 1200 万，以下是深度拆解。\n\n一、社交裂变设计\n微信好友组队裂变是本次全民电竞 2.0 最核心的增长引擎。邀请 3 人组队额外获电竞积分，朋友圈分享战绩得额外抽奖机会——这两个机制让每个参与用户都成为了传播节点。数据显示，裂变渠道贡献新用户占比达 35%。\n\n二、组队任务系统\n每日/周任务奖励升级，配合「五黑上分」等组队任务，日均完成组队数突破 800 万。任务奖励与电竞积分商城联动，限时兑换传说皮肤碎片进一步刺激活跃度。\n\n三、商业化联动\n赛季限定皮肤「龙魂战甲」预售开启 2 小时销售额破 1 亿，充分验证了电竞主题皮肤的付费潜力。\n\n四、赛事体系\n全国大赛线上赛区开放，报名人数破 300 万创历届新高。电竞观赛入口嵌入主界面的设计也为暑期 DAU 环比提升 19% 做出了贡献。\n\n五、总结\n全民电竞 2.0 的核心成功在于用社交裂变解决了用户增长、用赛事体系解决了用户留存、用限定商业化解决了付费转化——三者形成了完整的运营飞轮。'
+      var title = isPublisher ? (item.name + ' · ' + item.count) : (isCompetitor ? item.publisher + ' ' + item.ver + ' 动态' : getTitle(item));
+      var content = val(item.content || item.summary || item.move || '');
+
+      // 竞品条目生成完整正文
+      if (isCompetitor) {
+        var compExt = {
+          '米哈游': '米哈游在 2026 年暑期档展现出极强的协同运营能力。三款核心产品——原神 5.8 海岛版本、崩坏：星穹铁道 2.5「异星迷航」、绝区零 1.3 版本——几乎在同一周期内上线，形成了「三产品协同」的运营矩阵。\n\n一、版本协同策略\n三款产品的更新时间窗口高度集中，互相之间形成了交叉引流效应。原神的大版本更新带来超大规模的社媒讨论量，星穹铁道与绝区零借势推出各自的联动活动与内容更新，实现了用户注意力的无缝承接。\n\n二、商业化节奏\n三款产品各自采用了差异化的商业化结构：原神为限时地图+卡池，星穹铁道为联动限定礼包+累充回馈，绝区零主打剧情驱动的自然付费。这种分层商业化设计覆盖了不同类型的付费用户群体。\n\n三、社区运营\n三款产品在社区侧的协同也值得关注——原神聚焦 UGC 内容生态，星穹铁道强化角色话题讨论，绝区零则通过 PV 内容营销引爆社交传播。',
+          '腾讯游戏': '腾讯游戏在 2026 年暑期档展开了「全民电竞 2.0」为核心的多产品协同运营，涵盖了王者荣耀、和平精英、金铲铲之战、三角洲行动等多款头部产品。\n\n一、全民电竞 2.0\n王者荣耀全民电竞 2.0 是本次暑期档的核心支点——通过微信社交裂变+朋友圈分享的传播机制，首小时参与用户突破 1200 万，裂变渠道贡献新增用户占比达 35%。\n\n二、多产品协同\n和平精英「海岛 3.0」玩法更新带动 DAU 环比提升 19%；金铲铲之战 S13 赛季经济系统重构引发策略讨论热度；三角洲行动暑期超量内容更新展现社区情绪管理能力。\n\n三、商业化布局\n电竞 2.0 赛季限定皮肤「龙魂战甲」预售 2 小时销售额破 1 亿，展现了电竞主题皮肤的强大商业化潜力。和平精英的新玩法与金铲铲的经济系统重构也各自驱动了相应的付费场景。',
+          '库洛游戏': '库洛游戏在 2026 年暑期档通过鸣潮 1.4「暗涌」版本和战双帕弥什「湮灭残响」版本实现了双线作战，展现了中小厂商在运营节奏上的成熟控制力。\n\n一、鸣潮 1.4 版本\n从悬念预告页到社区解谜活动再到大版本上线，库洛仅用了 48 小时就完成了预热→爆发的全链路。上线首日紧急加开服务器以适应流量爆发，TapTap 热搜飙至第 1 位。\n\n二、战双帕弥什\n作为运营近 4 年的老产品，「湮灭残响」版本通过版本包装、社群激活、回流福利三维策略实现了老游戏焕新，回流用户次日留存达 41%。\n\n三、运营特色\n库洛的运营风格偏向「社区驱动」——通过解谜活动、二创激励等方式激发用户自发传播，以较低的营销成本获得较高的社媒热度。但同时也面临高难内容参与率低等挑战。',
+          '网易游戏': '网易游戏在 2026 年暑期档以赛季制大版本更新为核心，持续推进电竞生态重构。\n\n一、赛季制更新\nS7 赛季上线后，网易在电竞生态方面进行了多项调整，包括战队体系优化、赛事奖励升级、观赛体验改进等。\n\n二、运营策略\n网易的运营策略更偏向稳健——通过赛季制的节奏感维持用户长期留存，辅以阶段性的赛事热点激活社区讨论。与腾讯和米哈游的大规模联动不同，网易更注重单个产品内部的生态建设。\n\n三、展望\n后续网易能否在赛季制框架上进一步强化社交裂变与跨产品协同，将是其运营能力升级的关键。',
+          '鹰角网络': '鹰角网络在 2026 年暑期档以明日方舟夏日嘉年华为核心，展现了 IP 线下运营的新高度。\n\n一、线下嘉年华\n2026 夏日嘉年华线下售票首日售出 4.2 万张，线上同步直播预约破 60 万。活动预告视频 B 站播放量 12 小时突破 200 万。\n\n二、IP 运营升级\n鹰角从纯线上游戏公司向「线上+线下」IP 运营模式转型，嘉年华的成功举办为后续 IP 延伸品开发与线下活动常态化铺平了道路。\n\n三、挑战\n线下活动的运营成本远高于线上，如何在嘉年华热度过后持续维持用户关注度，是鹰角需要面对的长期挑战。',
+          '莉莉丝': '莉莉丝在 2026 年暑期档持续推进赛季制 SLG 用户回流策略升级。\n\n一、远征·第 4 赛季\n新赛季引入了全新的联盟战玩法与赛季限定奖励，通过社交关系链激活老用户回流。\n\n二、用户回流策略\n赛季制 SLG 的核心运营逻辑在于「赛季重置→社交召回→重新投入」的循环。莉莉丝通过赛季奖励升级+回归福利的双重激励，有效拉动了老用户的回归。\n\n三、展望\nSLG 品类的用户回流效率直接影响长线营收，莉莉丝在第 4 赛季的策略调整值得持续观察。'
         };
-        content = ext[id] || content;
+        content = compExt[item.publisher] || content;
+      }
+
+      // 厂商条目生成完整正文
+      if (isPublisher) {
+        var pubExt = {
+          'mihoyo': '米哈游是国内游戏行业最具影响力的二次元游戏厂商之一，旗下拥有原神、崩坏：星穹铁道、绝区零、崩坏3等多款头部产品。\n\n在 2026 年暑期档，米哈游以「三产品协同」的运营策略引人注目——原神 5.8 海岛版本、星穹铁道 2.5「异星迷航」、绝区零 1.3 版本几乎在同一周期内推出大版本更新。这种协同运营的策略不仅最大化了品牌声量，也实现了用户在不同产品间的交叉流动。\n\n米哈游的核心竞争力在于内容驱动运营——通过高质量的剧情叙事、角色塑造与限时活动设计，持续维持用户的情感投入与付费意愿。其商业化策略偏向「分层覆盖」：大 R 用户通过卡池与累充回馈满足，普通用户通过月卡与活动福利覆盖。\n\n目前本站已收录米哈游相关运营拆解报告 32 篇，覆盖活动拆解、商业化分析、版本复盘等多个维度。',
+          'tencent': '腾讯游戏是全球最大的游戏公司，旗下拥有王者荣耀、和平精英、金铲铲之战、三角洲行动等多款国民级产品。\n\n2026 年暑期档，腾讯以「全民电竞 2.0」为核心支点，展开了多产品协同的运营策略。王者荣耀的社交裂变机制首小时即撬动 1200 万用户参与；和平精英的海岛 3.0 玩法更新带动 DAU 环比增长 19%；金铲铲之战 S13 赛季经济系统重构引发深度策略讨论。\n\n腾讯的运营优势在于社交链路——微信/QQ 的社交关系链是其无与伦比的增长引擎。同时，多产品矩阵使其能够在暑期档同时覆盖 MOBA、战术竞技、自走棋等多个品类。\n\n目前本站已收录腾讯游戏相关运营拆解报告 28 篇，覆盖用户增长、社交裂变、电竞运营等核心方向。',
+          'kuro': '库洛游戏是一家以二次元动作游戏为核心品类的游戏开发商，旗下拥有鸣潮和战双帕弥什两款主力产品。\n\n2026 年暑期，库洛通过鸣潮 1.4「暗涌」版本实现了现象级的运营突破——从悬念预热到大版本上线仅用 48 小时，社群热度飙升至 TapTap 热搜第一。同时，战双帕弥什「湮灭残响」版本也展现了老游戏焕新的运营能力，回流用户次日留存达 41%。\n\n库洛的运营风格偏向「社区驱动型」——通过解谜活动、二创激励、悬念预告等方式激发玩家自发传播，以相对较小的营销预算撬动较大的社媒声量。这种打法对于中小厂商具有很高的参考价值。\n\n目前本站已收录库洛游戏相关运营拆解报告 16 篇，覆盖版本复盘、社区运营、用户增长等方向。',
+          'netease': '网易游戏是中国游戏行业的头部厂商之一，拥有梦幻西游、逆水寒、永劫无间等多款核心产品。\n\n在运营策略上，网易更偏向「稳健型」打法——通过赛季制的节奏感维持用户长期留存，辅以阶段性的赛事热点激活社区讨论。与腾讯和米哈游的大规模联动不同，网易更注重单个产品内部的生态建设与长线运营。\n\n目前本站已收录网易游戏相关运营拆解报告 21 篇，覆盖赛季运营、IP 运营、社区管理等方向。',
+          'hypergryph': '鹰角网络以明日方舟为主力产品，在二次元策略品类中占据独特地位。\n\n2026 年暑期，鹰角通过线下嘉年华展现了 IP 运营的新方向——从纯线上游戏公司向「线上+线下」IP 运营模式转型。嘉年华售票首日售出 4.2 万张，线上直播预约超 60 万，展现了明日方舟 IP 的强号召力。\n\n目前本站已收录鹰角网络相关运营拆解报告 9 篇，聚焦 IP 运营、线下活动、社区运营等方向。',
+          'lilith': '莉莉丝是国内 SLG 品类的头部厂商之一，旗下拥有万国觉醒、剑与远征等全球运营产品。\n\n莉莉丝的核心运营逻辑在于赛季制 SLG 的用户回流——通过「赛季重置→社交召回→重新投入」的循环模式驱动长线营收。远征·第 4 赛季引入了全新联盟战玩法与赛季限定奖励，进一步优化了用户回流效率。\n\n目前本站已收录莉莉丝相关运营拆解报告 11 篇，覆盖赛季运营、用户回流、商业化设计等方向。'
+        };
+        content = pubExt[item.id] || content;
       }
       var tags = item.tags || [];
       var aiTitle = item.title || item.content || title;
@@ -1240,7 +1266,7 @@
       var pubs=window.CONTENT_DATA.publishers||[];
       el.innerHTML=pubs.map(function(p){
         var lk=p.id||'';
-        return '<div class="pub-card"><div class="pub-avatar" style="background:'+esc(val(p.bgColor))+'"><div class="logo-wrap pub-size">'+logoImg(lk,val(p.name),'')+'</div></div><div class="pub-name">'+esc(val(p.name))+'</div><div class="pub-count">'+esc(val(p.count))+'</div></div>';
+        return '<div class="pub-card" data-detail-id="'+esc(val(p.id))+'"><div class="pub-avatar" style="background:'+esc(val(p.bgColor))+'"><div class="logo-wrap pub-size">'+logoImg(lk,val(p.name),'')+'</div></div><div class="pub-name">'+esc(val(p.name))+'</div><div class="pub-count">'+esc(val(p.count))+'</div></div>';
       }).join('');
     }
 
@@ -1301,7 +1327,7 @@
       var el=document.getElementById('compTable'); if(!el)return;
       var items=window.CONTENT_DATA.competitorIntel||[];
       var ce=document.getElementById('compCount'); if(ce)ce.textContent=items.length+'家';
-      el.innerHTML='<thead><tr><th>厂商</th><th>最新版本</th><th>日期</th><th>关键动作</th><th>状态</th></tr></thead><tbody>'+items.map(function(c){ return '<tr><td><span class="comp-pub">'+esc(val(c.publisher))+'</span></td><td>'+esc(val(c.ver))+'</td><td>'+esc(val(c.date))+'</td><td>'+esc(val(c.move))+'</td><td><span class="hotness-badge" style="background:'+esc(val(c.sc)||'#7C5CFF')+'">'+esc(val(c.status))+'</span></td></tr>'; }).join('')+'</tbody>';
+      el.innerHTML='<thead><tr><th>厂商</th><th>最新版本</th><th>日期</th><th>关键动作</th><th>状态</th></tr></thead><tbody>'+items.map(function(c, idx){ return '<tr data-detail-id="comp-'+idx+'"><td><span class="comp-pub">'+esc(val(c.publisher))+'</span></td><td>'+esc(val(c.ver))+'</td><td>'+esc(val(c.date))+'</td><td>'+esc(val(c.move))+'</td><td><span class="hotness-badge" style="background:'+esc(val(c.sc)||'#7C5CFF')+'">'+esc(val(c.status))+'</span></td></tr>'; }).join('')+'</tbody>';
     }
 
     /* 时间线滚动动画 */
